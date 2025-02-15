@@ -1,0 +1,10 @@
+[package]
+name = "api"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+lastfm = { workspace = true }
+serde = { workspace = true }
+
+actix-web = "4.9.0"

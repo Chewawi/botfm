@@ -1,0 +1,23 @@
+cargo-features = ["codegen-backend"]
+
+[workspace]
+members = ["crates/lastfm", "services/api", "services/bot"]
+resolver = "2"
+
+[workspace.dependencies]
+api = { path = "services/api" }
+
+database = { path = "crates/database" }
+lastfm = { path = "crates/lastfm" }
+common = { path = "crates/common" }
+
+anyhow = "1.0.75"
+serde = { version = "1.0.123", features = ["derive"] }
+reqwest = { version = "0.12.12", features = ["json"] }
+tokio = { version = "1.34.0", features = ["full"] }
+tracing = "0.1.37"
+
+[workspace.lints.clippy]
+uninlined_format_args = "warn"
+redundant_clone = "warn"
+too_long_first_doc_paragraph = "allow"

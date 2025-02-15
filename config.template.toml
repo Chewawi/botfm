@@ -1,0 +1,34 @@
+bot_id = 1249465314538950747
+
+[authentication]
+# Token to authenticate with Discord.
+discord_token = ""
+
+lastfm_key = ""
+lastfm_secret = ""
+lastfm_redirect_uri = "http://localhost:8080/lastfm_callback"
+
+# Database information.
+[database]
+host = ""
+username = ""
+password = ""
+database = ""
+port = 0
+
+[prefix]
+# When the bot joins a new guild, this will be the default prefix.
+default = "."
+
+[logging_webhooks]
+panic = { token = "", id = 0 }
+error = { token = "", id = 0 }
+enable_webhooks = true
+
+[dev]
+# These Discord user IDs have full control of the bot, including developer-only commands.
+developers = []
+
+# When working with a dev instance, set this to the prefix "override" value for that instance
+# to prevent triggering the production instance and the development instance at the same time.
+prefix_override = "¬"
