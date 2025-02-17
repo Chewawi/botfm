@@ -1,5 +1,3 @@
-cargo-features = ["codegen-backend"]
-
 [workspace]
 members = ["crates/lastfm", "services/api", "services/bot"]
 resolver = "2"

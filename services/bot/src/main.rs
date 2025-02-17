@@ -1,4 +1,4 @@
-use actix_web::{web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{web, App, HttpServer, Responder};
 use anyhow::Result;
 use common::config::CONFIG;
 use database::DatabaseHandler;
