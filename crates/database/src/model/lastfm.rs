@@ -78,7 +78,7 @@ impl Lastfm {
         }
 
         // SQL query to select Last.fm session data by user ID
-        let query = "SELECT user_id, lastfm_username, session_key, token FROM lastfm_sessions WHERE user_id = $1";
+        let query = "SELECT * FROM lastfm_sessions WHERE user_id = $1";
 
         match sqlx::query_as::<_, Lastfm>(query)
             .bind(user_id as i64) // Bind user ID as i64 for SQL query
