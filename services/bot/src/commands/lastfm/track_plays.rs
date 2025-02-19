@@ -49,7 +49,7 @@ pub async fn track_plays(ctx: Context<'_>) -> Result<(), Error> {
 
                     let image_color = Colors::get(&data.db.cache, data.http_client.clone(), small_url)
                         .await?
-                        .ok_or_else(|| vec![255,255,255])?;
+                        .unwrap_or(vec![255,255,255]);
 
                     let embed = serenity::CreateEmbed::new()
                         .description(format!(
