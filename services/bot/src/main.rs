@@ -1,6 +1,9 @@
 use actix_web::{web, App, HttpServer, Responder};
 use anyhow::Result;
+
 use common::config::CONFIG;
+use common::utils::tracing_init;
+
 use database::DatabaseHandler;
 use lastfm::LastFmClient;
 use poise::{serenity_prelude as serenity, PrefixFrameworkOptions};
@@ -23,7 +26,7 @@ type Context<'a> = poise::Context<'a, Data, Error>;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    dotenv::dotenv().ok();
+    tracing_init();
 
     let intents = serenity::GatewayIntents::all();
 
