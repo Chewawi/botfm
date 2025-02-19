@@ -12,8 +12,10 @@ sqlx = { version = "0.8", features = [
     "runtime-tokio-native-tls",
 ] }
 
+common = { workspace = true }
 anyhow = { workspace = true }
 tracing = { workspace = true }
+reqwest = { workspace = true }
 
 [lints]
 workspace = true

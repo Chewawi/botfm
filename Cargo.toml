@@ -10,6 +10,8 @@ lastfm = { path = "crates/lastfm" }
 common = { path = "crates/common" }
 
 anyhow = "1.0.75"
+rayon = "1.10.0"
+image = "0.25.5"
 serde = { version = "1.0.123", features = ["derive"] }
 reqwest = { version = "0.12.12", features = ["json"] }
 tokio = { version = "1.34.0", features = ["full"] }

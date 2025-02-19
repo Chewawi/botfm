@@ -6,8 +6,15 @@ edition = "2021"
 [dependencies]
 serde = { workspace = true }
 tracing = { workspace = true }
+reqwest = { workspace = true }
+image = { workspace = true }
+rayon = { workspace = true }
+anyhow = { workspace = true }
+
 toml = "0.8.8"
 lazy_static = "1.4.0"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter", "local-time"] }
+time = "0.3.37"
 
 [lints]
 workspace = true

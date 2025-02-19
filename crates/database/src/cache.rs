@@ -2,7 +2,6 @@ use std::hash::Hash;
 use std::mem::size_of;
 use std::time::Duration;
 use std::u64;
-
 use mini_moka::sync::Cache;
 
 use crate::model::lastfm::Lastfm;
@@ -58,6 +57,9 @@ pub struct DatabaseCache {
     prefixes: Cache<u64, Prefix>,
     /// Cache for lastfm sessions, keyed by user ID.
     sessions: Cache<u64, Lastfm>,
+    /// Cache for image colors, keyed by image URL.
+    /// This cache is used to store the dominant color of an image for embeds.
+    colors: Cache<String, Vec<u8>>,
 }
 
 impl DatabaseCache {
@@ -68,6 +70,8 @@ impl DatabaseCache {
             prefixes: default_cache_sized(100000),
             // Session cache with a very large capacity (effectively unbounded for practical purposes)
             sessions: default_cache_sized(u64::MAX),
+            // Image color cache with a capacity of 1,000 entries
+            colors: default_cache_sized(1000),
         }
     }
 
@@ -126,14 +130,33 @@ impl DatabaseCache {
         self.sessions.insert(user_id, session);
     }
 
-    /// Calculates the approximate size in bytes of the prefixes cache.
+    /// Retrieves an image color from the cache by image URL.
     ///
-    /// This method iterates over the prefixes cache and sums up the size of each key (u64) and value (Prefix).
-    /// It's an approximation as it doesn't account for the cache's internal data structures.
+    /// # Arguments
+    ///
+    /// * `image_url`: The URL of the image to retrieve the color for.
     ///
     /// # Returns
     ///
-    /// The approximate size of the prefixes cache in bytes as a `u64`.
+    /// An `Option<Vec<u8>>` containing the color if found in the cache, or `None` otherwise.
+    pub fn get_image_color(&self, image_url: &str) -> Option<Vec<u8>> {
+        self.colors.get(&image_url.to_string())
+    }
+
+    /// Sets an image color in the cache for a given image URL.
+    ///
+    /// # Arguments
+    ///
+    /// * `image_url`: The URL of the image to set the color for.
+    /// * `color`: The `Rgba<u8>` color to be cached.
+    ///
+    /// # Returns
+    ///
+    /// An `Option<Vec<u8>>` containing the color if found in the cache, or `None` otherwise.
+    pub fn set_image_color(&self, image_url: &str, colors: Vec<u8>) {
+        self.colors.insert(image_url.to_string(), colors);
+    }
+
     pub fn size_of(&self) -> u64 {
         let mut size = 0;
 

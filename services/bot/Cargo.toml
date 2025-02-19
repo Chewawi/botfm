@@ -10,18 +10,12 @@ api = { workspace = true }
 
 common = { workspace = true }
 database = { workspace = true }
-lastfm = { workspace = true }
-serde = { workspace = true }
 anyhow = { workspace = true }
-
 
 tokio = { workspace = true }
 reqwest = { workspace = true }
 
 poise = "0.6.1"
-dotenv = "0.15.0"
-image = "0.25.5"
-rayon = "1.10.0"
 sysinfo = "0.33.1"
 humanize-bytes = "1.0.6"
 actix-web = "4.9.0"

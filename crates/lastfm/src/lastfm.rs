@@ -118,6 +118,7 @@ pub struct LastFmTrackInfoResponse {
 #[derive(Debug, Deserialize)]
 pub struct TrackInfo {
     pub playcount: String,
+    pub userplaycount: String,
 }
 
 #[derive(Debug, Deserialize)]
