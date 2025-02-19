@@ -10,7 +10,6 @@ use poise::{serenity_prelude as serenity, PrefixFrameworkOptions};
 use std::sync::Arc;
 
 mod core;
-pub use core::utils;
 
 mod commands;
 
