@@ -1,5 +1,5 @@
-use crate::utils::image::get_image_color;
 use crate::{Context, Error};
+use database::model::colors::Colors;
 use database::model::lastfm::Lastfm;
 use poise::serenity_prelude as serenity;
 
@@ -14,79 +14,76 @@ pub async fn now_playing(ctx: Context<'_>) -> Result<(), Error> {
     let lastfm_client = data.lastfm.clone();
     let user_id = ctx.author().id.get();
 
-    let db_clone = data.db.clone();
-    let db = Lastfm::get(&db_clone as &database::DatabaseHandler, user_id);
+    let session = Lastfm::get(&*data.db, user_id)
+        .await?
+        .ok_or_else(|| Error::from("Missing Last.fm user session"))?;
 
-    let lastfm_user = match db.await {
-        Ok(user) => user,
-        Err(_) => {
-            ctx.say("You haven't linked your Last.fm account yet. Use the `/login` command.")
-                .await?;
-            return Ok(());
-        }
+    let (track_opt, lastfm_user) = tokio::try_join!(
+        lastfm_client.get_current_track(session),
+        lastfm_client.get_user_info(user_id)
+    )?;
+
+    let track = track_opt.ok_or_else(|| Error::from("No current track found"))?;
+
+    let trackinfo = lastfm_client
+            .get_track_info(user_id, &track.artist.text, &track.name).await?;
+
+    let title_prefix = if track.attr.as_ref()
+        .and_then(|a| a.nowplaying.as_deref()) == Some("true")
+    {
+        "Now playing"
+    } else {
+        "Last track"
     };
 
-    match lastfm_client
-        .get_current_track(lastfm_user.expect("Missing Last.fm user"))
-        .await
-    {
-        Ok(track_opt) => {
-            let lastfm_user = lastfm_client.get_user_info(user_id).await?;
+    let small_url = track
+        .image
+        .iter()
+        .find(|img| img.size == "small")
+        .map(|img| &img.text)
+        .ok_or_else(|| Error::from("Missing small image URL"))?;
+    let large_url = track
+        .image
+        .iter()
+        .find(|img| img.size == "large")
+        .map(|img| &img.text)
+        .ok_or_else(|| Error::from("Missing large image URL"))?;
 
-            let track = track_opt.unwrap();
+    let image_color = Colors::get(&data.db.cache, data.http_client.clone(), small_url)
+        .await?
+        .ok_or_else(|| Error::from("Could not retrieve image color"))?;
 
-            let title_prefix =
-                if track.attr.as_ref().and_then(|a| a.nowplaying.as_deref()) == Some("true") {
-                    "Now playing"
-                } else {
-                    "Last track"
-                };
+    println!("{:#?}", trackinfo);
 
-            let image_url = &track
-                .image
-                .iter()
-                .find(|image| image.size == "large")
-                .unwrap()
-                .text;
+    let embed = serenity::CreateEmbed::new()
+        .author(
+            serenity::CreateEmbedAuthor::new(title_prefix).icon_url(ctx.author().face()),
+        )
+        .title(&track.name)
+        .url(&track.url)
+        .description(format!(
+            "-# **{}** - *{}*",
+            track.artist.text,
+            track.album.as_ref().map(|a| a.text.as_str()).unwrap_or("Unknown album")
+        ))
+        .color(serenity::Colour::from_rgb(
+            image_color[0],
+            image_color[1],
+            image_color[2],
+        ))
+        .thumbnail(large_url);
 
-            let image_color = get_image_color(data.http_client.clone(), image_url.clone()).await?;
+    let components = vec![serenity::CreateActionRow::Buttons(vec![
+        serenity::CreateButton::new("play_count")
+            .label(format!("{} plays", trackinfo.userplaycount))
+            .disabled(true),
+        serenity::CreateButton::new("scrobbles")
+            .label(format!("{} scrobbles", lastfm_user.playcount))
+            .disabled(true),
+    ])];
 
-            let embed = serenity::CreateEmbed::new()
-                .author(
-                    serenity::CreateEmbedAuthor::new(title_prefix).icon_url(ctx.author().face()),
-                )
-                .title(track.name)
-                .url(track.url)
-                .description(format!(
-                    "-# **{}** - *{}*",
-                    track.artist.text,
-                    track.album.unwrap().text
-                ))
-                .color(serenity::Colour::from_rgb(
-                    image_color[0],
-                    image_color[1],
-                    image_color[2],
-                ))
-                .thumbnail(image_url.clone());
-
-            let components = vec![serenity::CreateActionRow::Buttons(vec![
-                serenity::CreateButton::new("play_count")
-                    .label(format!("{} total scrobbles", lastfm_user.playcount))
-                    .disabled(true),
-            ])];
-
-            ctx.send(
-                poise::CreateReply::default()
-                    .embed(embed)
-                    .components(components),
-            )
-            .await?;
-        }
-        Err(err) => {
-            ctx.say(format!("Error fetching current track: {}", err))
-                .await?;
-        }
-    }
+    ctx.send(poise::CreateReply::default().embed(embed).components(components))
+        .await?;
 
     Ok(())
 }

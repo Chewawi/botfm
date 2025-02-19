@@ -1,8 +1,8 @@
-use crate::utils::image::get_image_color;
 use crate::{Context, Error};
 use database::model::lastfm::Lastfm;
 use poise::command;
 use poise::serenity_prelude as serenity;
+use database::model::colors::Colors;
 
 #[command(slash_command, prefix_command, aliases("tp"))]
 pub async fn track_plays(ctx: Context<'_>) -> Result<(), Error> {
@@ -34,31 +34,31 @@ pub async fn track_plays(ctx: Context<'_>) -> Result<(), Error> {
             let artist_name = track.artist.text.clone();
 
             match lastfm_client
-                .get_track_info(user_id, &track_name, &artist_name)
+                .get_track_info(user_id, &artist_name, &track_name)
                 .await
             {
                 Ok(track_info) => {
                     let playcount = track_info.playcount;
 
-                    let image_url = &track
+                    let small_url = track
                         .image
                         .iter()
-                        .find(|image| image.size == "large")
-                        .unwrap()
-                        .text;
+                        .find(|img| img.size == "small")
+                        .map(|img| &img.text)
+                        .ok_or_else(|| Error::from("Missing small image URL"))?;
 
-                    let image_color =
-                        get_image_color(data.http_client.clone(), image_url.clone()).await?;
+                    let image_color = Colors::get(&data.db.cache, data.http_client.clone(), small_url)
+                        .await?
+                        .ok_or_else(|| vec![255,255,255])?;
 
                     let embed = serenity::CreateEmbed::new()
-                        .title(format!("Play Count for {}", track_name))
                         .description(format!(
-                            "**Artist:** {}\n**Total Plays:** {}",
-                            artist_name, playcount
+                            "**{}** plays for **{}** by **{}**",
+                            playcount, track.name, track.artist.text
                         ))
                         .color(serenity::Colour::from_rgb(
                             image_color[0],
-                            image_color[0],
+                            image_color[1],
                             image_color[2],
                         ));
 
