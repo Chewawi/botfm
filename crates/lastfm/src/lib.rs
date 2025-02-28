@@ -1,14 +1,11 @@
-use anyhow::Result;
+use anyhow::{Error, Result};
 use chrono::Utc;
 use common::config::CONFIG;
 use database::model::lastfm::Lastfm;
 use std::sync::Arc;
 
-mod lastfm;
-use lastfm::{
-    LastFmRecentTracksResponse, LastFmSession, LastFmSessionResponse, LastFmTrackInfoResponse,
-    LastFmUserInfoResponse, Track, TrackInfo, UserInfo,
-};
+pub mod lastfm;
+pub use lastfm::*;
 
 pub struct LastFmClient {
     api_key: String,
@@ -58,7 +55,7 @@ impl LastFmClient {
         Ok(())
     }
 
-    async fn get_session(&self, token: &str) -> std::result::Result<LastFmSession, anyhow::Error> {
+    async fn get_session(&self, token: &str) -> std::result::Result<LastFmSession, Error> {
         let params = [
             ("method", "auth.getSession"),
             ("api_key", &self.api_key),
@@ -191,5 +188,23 @@ impl LastFmClient {
             .cache
             .get_session(user_id)
             .ok_or_else(|| anyhow::anyhow!("No session found"))
+    }
+
+    /// Get the small and large image URLs from Lastfm.
+    pub fn get_image_urls<'a>(
+        &self,
+        images: &'a [lastfm::Image],
+    ) -> Result<(&'a str, &'a str), Error> {
+        let small = images
+            .iter()
+            .find(|i| i.size == "small")
+            .ok_or_else(|| anyhow::anyhow!("Small URL not found"))?;
+
+        let large = images
+            .iter()
+            .find(|i| i.size == "large")
+            .ok_or_else(|| anyhow::anyhow!("Large URL not found"))?;
+
+        Ok((&small.text, &large.text))
     }
 }

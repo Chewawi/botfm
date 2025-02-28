@@ -4,10 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-serenity = "0.12"
+serenity = "0.12.4"
 
 api = { workspace = true }
 
+lastfm = { workspace = true }
 common = { workspace = true }
 database = { workspace = true }
 anyhow = { workspace = true }
@@ -19,3 +20,7 @@ poise = "0.6.1"
 sysinfo = "0.33.1"
 humanize-bytes = "1.0.6"
 actix-web = "4.9.0"
+image = { workspace = true }
+imageproc = "0.25.0"
+ab_glyph = "0.2.29"
+lazy_static = "1.5.0"
