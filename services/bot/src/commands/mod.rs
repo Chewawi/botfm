@@ -17,5 +17,6 @@ macro_rules! register_commands {
 
 pub fn register_all_commands() -> Vec<poise::Command<Data, Box<dyn std::error::Error + Send + Sync>>>
 {
-    register_commands!(lastfm)
+    register_commands!(lastfm);
+    register_commands!(system)
 }

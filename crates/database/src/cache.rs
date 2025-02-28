@@ -71,7 +71,7 @@ impl DatabaseCache {
             // Session cache with a very large capacity (effectively unbounded for practical purposes)
             sessions: default_cache_sized(u64::MAX),
             // Image color cache with a capacity of 1,000 entries
-            colors: default_cache_sized(1000),
+            colors: default_cache(),
         }
     }
 

@@ -90,7 +90,7 @@ impl DatabaseHandler {
 /// # Returns
 ///
 /// `true` if the error is a unique constraint violation, `false` otherwise.
-pub(crate) fn is_unique_violation(error: &sqlx::Error) -> bool {
+pub(crate) fn _is_unique_violation(error: &sqlx::Error) -> bool {
     // Define the SQLSTATE code for unique constraint violation
     const UNIQUE_CONSTRAINT_VIOLATION_CODE: Cow<'_, str> = Cow::Borrowed("23505");
     error
