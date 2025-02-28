@@ -20,7 +20,7 @@ const TEXT_BG_COLOR: image::Rgba<u8> = image::Rgba([0, 0, 0, 180]);
 
 lazy_static! {
     static ref FONT: FontArc = {
-        let font_data = include_bytes!("../../../../../../../../Downloads/Arial.ttf");
+        let font_data = include_bytes!("../../../../../assets/fonts/Arial.ttf");
         FontArc::try_from_slice(font_data).expect("Error loading font")
     };
 }
