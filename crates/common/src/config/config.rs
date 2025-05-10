@@ -32,21 +32,34 @@ impl Database {
     #[must_use]
     pub fn to_url(&self) -> String {
         format!(
-            "postgres://{}:{}@{}/{}",
-            self.username, self.password, self.host, self.database
+            "postgres://{}:{}@{}:{}/{}",
+            self.username, self.password, self.host, self.port, self.database
         )
     }
 
     #[must_use]
     pub fn to_url_safe(&self) -> String {
-        let mut host = self.host.split('.').take(2).collect::<Vec<_>>();
-        host.push("###");
-        host.push("###");
+        let labels: Vec<&str> = self.host.split('.').collect();
+
+        let masked_host = match labels.len() {
+            n if n > 2 => {
+                let mut masked = vec!["***"; n - 2];
+                masked.extend_from_slice(&labels[n-2..]);
+                masked.join(".")
+            }
+            2 => {
+                format!("***.{}", labels[1])
+            }
+            _ => {
+                "***".to_string()
+            }
+        };
 
         format!(
-            "postgres://{}@{}/{}",
+            "postgres://{}@{}:{}/{}",
             self.username,
-            &host.join("."),
+            masked_host,
+            self.port,
             self.database
         )
     }
