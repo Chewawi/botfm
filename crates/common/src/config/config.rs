@@ -6,6 +6,7 @@ use serde::Deserialize;
 #[derive(Deserialize)]
 pub struct Config {
     pub bot_id: u64,
+    pub api: API,
     pub authentication: Authentication,
     pub database: Database,
     pub prefix: Prefixes,
@@ -18,6 +19,12 @@ pub struct Authentication {
     pub lastfm_key: String,
     pub lastfm_secret: String,
     pub lastfm_redirect_uri: String,
+}
+
+#[derive(Deserialize)]
+pub struct API {
+    pub port: u16,
+    pub host: String,
 }
 
 #[derive(Deserialize)]

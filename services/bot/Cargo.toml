@@ -6,23 +6,16 @@ edition = "2021"
 [dependencies]
 poise = { version = "0.6.1" }
 
-api = { workspace = true }
-
 lastfm = { workspace = true }
 common = { workspace = true }
 database = { workspace = true }
 
-anyhow = { workspace = true }
 tokio = { workspace = true }
 reqwest = { workspace = true }
 
 sysinfo = "0.35.0"
 humanize-bytes = "1.0.6"
-actix-web = "4.10.2"
 image = { workspace = true }
 imageproc = "0.25.0"
 ab_glyph = "0.2.29"
 lazy_static = "1.5.0"
-
-[patch.crates-io]
-serenity = { git = "https://github.com/jamesbt365/serenity.git", branch = "components-v2", version = "0.12.4" }

@@ -4,7 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+common = { workspace = true }
+database = { workspace = true }
 lastfm = { workspace = true }
 serde = { workspace = true }
 
 actix-web = "4.9.0"
+reqwest = "0.12.15"

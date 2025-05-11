@@ -6,7 +6,12 @@ discord_token = ""
 
 lastfm_key = ""
 lastfm_secret = ""
-lastfm_redirect_uri = "http://localhost:8080/lastfm_callback"
+lastfm_redirect_uri = "https://api.botfm.chewawi.gay/lastfm_callback"
+
+# Api information.
+[api]
+port = 1313
+host = "api.botfm.chewawi.gay"
 
 # Database information.
 [database]
@@ -31,4 +36,4 @@ developers = []
 
 # When working with a dev instance, set this to the prefix "override" value for that instance
 # to prevent triggering the production instance and the development instance at the same time.
-prefix_override = "¬"
+prefix_override = "~"

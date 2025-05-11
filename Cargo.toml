@@ -1,10 +1,9 @@
 [workspace]
-members = ["crates/lastfm", "services/api", "services/bot"]
+members = ["services/api", "services/bot", "crates/common", "crates/database", "crates/lastfm"]
+default-members = ["services/api", "services/bot"]
 resolver = "2"
 
 [workspace.dependencies]
-api = { path = "services/api" }
-
 database = { path = "crates/database" }
 lastfm = { path = "crates/lastfm" }
 common = { path = "crates/common" }
@@ -21,3 +20,7 @@ tracing = "0.1.37"
 uninlined_format_args = "warn"
 redundant_clone = "warn"
 too_long_first_doc_paragraph = "allow"
+
+
+[patch.crates-io]
+serenity = { git = "https://github.com/jamesbt365/serenity.git", branch = "components-v2" }

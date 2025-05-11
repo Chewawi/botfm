@@ -1,15 +1,10 @@
-use actix_web::{web, App, HttpServer};
-use anyhow::Result;
-
 use common::config::CONFIG;
 use common::utils::tracing_init;
-
 use database::DatabaseHandler;
 use lastfm::LastFmClient;
+
 use poise::{serenity_prelude as serenity, PrefixFrameworkOptions};
 use std::sync::Arc;
-
-mod core;
 
 mod commands;
 
@@ -38,61 +33,36 @@ async fn main() -> Result<(), Error> {
     let data = Arc::new(Data {
         http_client,
         db,
-        lastfm: lastfm.clone(),
+        lastfm,
     });
 
-    let framework = {
-        let data_clone_for_framework = data.clone();
-
-        poise::Framework::builder()
-            .options(poise::FrameworkOptions {
-                prefix_options: PrefixFrameworkOptions {
-                    prefix: Some("!".to_string()),
-                    mention_as_prefix: true,
-                    case_insensitive_commands: true,
-                    ..Default::default()
-                },
-
-                commands: commands::register_all_commands(),
-
+    let framework = poise::Framework::builder()
+        .options(poise::FrameworkOptions {
+            prefix_options: PrefixFrameworkOptions {
+                prefix: Some("!".to_string()),
+                mention_as_prefix: true,
+                case_insensitive_commands: true,
                 ..Default::default()
+            },
+            commands: commands::register_all_commands(),
+            ..Default::default()
+        })
+        .setup(move |ctx, ready, framework| {
+            let data_clone = data.clone();
+            Box::pin(async move {
+                println!("Registering commands...");
+                poise::builtins::register_globally(ctx, &framework.options().commands).await?;
+                println!("Ready as {}!", ready.user.name);
+                Ok((*data_clone).clone())
             })
-            .setup(move |ctx, _ready, framework| {
-                let data_clone_for_setup = data_clone_for_framework.clone();
-                Box::pin(async move {
-                    println!("Registering commands...");
-                    poise::builtins::register_globally(ctx, &framework.options().commands).await?;
+        })
+        .build();
 
-                    println!("Ready as {}!", _ready.user.name);
-                    Ok((*data_clone_for_setup).clone())
-                })
-            })
-            .build()
-    };
+    let mut client = serenity::ClientBuilder::new(&CONFIG.authentication.discord_token, intents)
+        .framework(framework)
+        .await?;
 
-    let data_for_server = data.clone();
+    client.start().await?;
 
-    let server = HttpServer::new(move || {
-        App::new()
-            .app_data(web::Data::new(data_for_server.lastfm.clone()))
-            .configure(api::config)
-    })
-    .bind("0.0.0.0:8080")?
-    .run();
-
-    let mut serenity_client =
-        serenity::ClientBuilder::new(&CONFIG.authentication.discord_token, intents)
-            .framework(framework)
-            .await?;
-
-    tokio::select! {
-        _ = server => {
-            println!("Actix server stopped.");
-            Ok(())
-        },
-        result = serenity_client.start() => {
-            println!("Serenity client stopped.");
-            result.map_err(|e| e.into())
-        }
-    }
+    Ok(())
 }
