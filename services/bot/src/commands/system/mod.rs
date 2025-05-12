@@ -1,8 +1,8 @@
-use crate::core::structs::Data;
+use crate::core::structs::Command;
 
 pub mod system_info;
 
 pub fn register(
-) -> Vec<lumi::Command<Data, Box<(dyn std::error::Error + std::marker::Send + Sync + 'static)>>> {
+) -> Vec<Command> {
     vec![system_info::system_info()]
 }

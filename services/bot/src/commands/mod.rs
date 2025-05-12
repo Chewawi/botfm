@@ -1,21 +1,19 @@
-use crate::core::structs::Data;
+use crate::core::structs::Command;
 
 pub mod lastfm;
 pub mod system;
+mod register;
 
 macro_rules! register_commands {
-    ($($module:ident),*) => {
-        {
-            let mut cmds = Vec::new();
-            $(
-                cmds.extend($module::register());
-            )*
-            cmds
-        }
-    };
+    ($($module:ident),*) => {{
+        let mut cmds: Vec<Command> = Vec::new();
+        $(
+            cmds.extend($module::register());
+        )*
+        cmds
+    }};
 }
 
-pub fn register_all_commands() -> Vec<lumi::Command<Data, Box<dyn std::error::Error + Send + Sync>>>
-{
+pub fn register_all_commands() -> Vec<Command> {
     register_commands!(lastfm, system)
 }

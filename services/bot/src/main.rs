@@ -8,11 +8,12 @@ use std::time::Duration;
 
 mod commands;
 mod core;
+mod events;
 
 #[tokio::main]
 async fn main() {
     tracing_init();
-    
+
     let data = core::data::setup().await;
 
     let framework = lumi::Framework::new(lumi::FrameworkOptions {
@@ -28,7 +29,7 @@ async fn main() {
         commands: commands::register_all_commands(),
         ..Default::default()
     });
-    
+
     let mut settings = serenity::Settings::default();
     settings.max_messages = 1000;
 
@@ -39,8 +40,9 @@ async fn main() {
         .framework(framework)
         .data(data)
         .cache_settings(settings)
+        .event_handler(events::Handler)
         .await
         .unwrap();
-    
+
     client.start().await.unwrap();
 }

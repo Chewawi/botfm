@@ -1,11 +1,11 @@
-use crate::core::structs::Data;
+use crate::core::structs::Command;
 
 pub mod login;
 pub mod now_playing;
 pub mod track_plays;
 
 pub fn register(
-) -> Vec<lumi::Command<Data, Box<(dyn std::error::Error + std::marker::Send + Sync + 'static)>>> {
+) -> Vec<Command> {
     vec![
         now_playing::now_playing(),
         track_plays::track_plays(),

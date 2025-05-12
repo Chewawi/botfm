@@ -3,10 +3,10 @@ use std::sync::atomic::AtomicBool;
 use database::DatabaseHandler;
 use lastfm::LastFmClient;
 
-pub type Error = Box<dyn std::error::Error + Send + Sync>;
-pub type Context<'a> = lumi::Context<'a, Data, Error>;
 pub type PrefixContext<'a> = lumi::PrefixContext<'a, Data, Error>;
 pub type FrameworkContext<'a> = lumi::FrameworkContext<'a, Data, Error>;
+pub type Error = Box<dyn std::error::Error + Send + Sync>;
+pub type Context<'a> = lumi::Context<'a, Data, Error>;
 pub type Command = lumi::Command<Data, Error>;
 
 #[derive()]

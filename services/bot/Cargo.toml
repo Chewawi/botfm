@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-poise = { version = "0.6.1" }
 serenity = { workspace = true, default-features = false, features = ["gateway", "model", "cache", "collector", "rustls_backend"] }
 lumi = { workspace = true }
 
@@ -21,3 +20,4 @@ image = { workspace = true }
 imageproc = "0.25.0"
 ab_glyph = "0.2.29"
 lazy_static = "1.5.0"
+tracing = "0.1.41"
