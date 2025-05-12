@@ -5,6 +5,8 @@ edition = "2021"
 
 [dependencies]
 poise = { version = "0.6.1" }
+serenity = { workspace = true, default-features = false, features = ["gateway", "model", "cache", "collector", "rustls_backend"] }
+lumi = { workspace = true }
 
 lastfm = { workspace = true }
 common = { workspace = true }

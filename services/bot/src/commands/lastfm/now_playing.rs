@@ -1,6 +1,11 @@
-use crate::{Context, Error};
 use database::model::{colors::Colors, lastfm::Lastfm};
 use poise::serenity_prelude as serenity;
+use ::serenity::builder::{
+    CreateContainer, CreateMediaGallery, CreateMediaGalleryItem, CreateComponent,
+    CreateTextDisplay, CreateAttachment, CreateSeparator, Spacing,
+    CreateUnfurledMediaItem
+};
+use lumi::{CreateReply};
 use image::{RgbaImage, imageops, ImageFormat};
 use imageproc::{drawing::{draw_filled_rect_mut, draw_text_mut}, rect::Rect};
 use ab_glyph::{FontArc, PxScale};
@@ -8,6 +13,7 @@ use lazy_static::lazy_static;
 use reqwest;
 use std::io::Cursor;
 use common::utils::truncate_text;
+use crate::core::structs::{Context, Error};
 
 // Design constants
 const CANVAS_SIZE: (u32, u32) = (800, 400);
@@ -25,7 +31,7 @@ lazy_static! {
     };
 }
 
-#[poise::command(
+#[lumi::command(
     slash_command,
     prefix_command,
     aliases("np", "now"),
@@ -58,13 +64,14 @@ pub async fn now_playing(ctx: Context<'_>) -> Result<(), Error> {
     ).await?;
 
     // Create embed
-    let embed = create_embed(ctx, &track, small_url).await?;
+    let container = create_container(ctx, &track, small_url).await?;
 
-    ctx.send(poise::CreateReply::default()
-        .embed(embed)
-        .attachment(serenity::CreateAttachment::bytes(image_bytes, "now_playing.png"))
-    )
-        .await?;
+    ctx.send(
+        CreateReply::default()
+            .components(&[CreateComponent::Container(container)])
+            //.embed(embed)
+            .attachment(CreateAttachment::bytes(image_bytes, "now_playing.png"))
+    ).await?;
 
     Ok(())
 }
@@ -138,24 +145,27 @@ async fn generate_image(
     Ok(result)
 }
 
-async fn create_embed(ctx: Context<'_>, track: &lastfm::Track, image_url: &str) -> Result<serenity::CreateEmbed, Error> {
+async fn create_container<'a>(ctx: Context<'_>, track: &'a lastfm::Track, image_url: &str) -> Result<CreateContainer<'a>, Error> {
     let color = Colors::get(&ctx.data().db.cache, ctx.data().http_client.clone(), image_url)
         .await?
         .map(|c| serenity::Colour::from_rgb(c[0], c[1], c[2]))
-        .unwrap_or(serenity::Colour::DARK_GREY);
+        .unwrap_or(serenity::Colour::DARK_GREY); 
 
-    Ok(serenity::CreateEmbed::new()
-        .author(serenity::CreateEmbedAuthor::new("Now Playing")
-            .icon_url(ctx.author().face()))
-        .title(truncate_text(&track.name, 256))
-        .url(&track.url)
-        .description(format!(
-            "**{}**\n*{}*",
-            track.artist.text,
-            track.album.as_ref()
-                .map(|a| a.text.as_str())
-                .unwrap_or("Unknown album")
-        ))
-        .color(color)
-        .image("attachment://now_playing.png"))
+    Ok(CreateContainer::new(vec![
+            CreateComponent::TextDisplay(
+                CreateTextDisplay::new(
+                    format!("# [{}]({})", truncate_text(&track.name, 256), track.url)
+                ),
+            ),
+            CreateComponent::Separator(
+                CreateSeparator::new(true).spacing(Spacing::Small)
+            ),
+            CreateComponent::MediaGallery(
+                CreateMediaGallery::new(vec![
+                    CreateMediaGalleryItem::new(
+                        CreateUnfurledMediaItem::new("attachment://now_playing.png")
+                    )
+                ])
+            )
+    ]).accent_color(color.0))
 }

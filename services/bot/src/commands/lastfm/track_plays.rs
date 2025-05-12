@@ -1,10 +1,9 @@
-use crate::{Context, Error};
+use crate::core::structs::{Context, Error};
 use database::model::lastfm::Lastfm;
-use poise::command;
-use poise::serenity_prelude as serenity;
+use lumi::serenity_prelude as serenity;
 use database::model::colors::Colors;
 
-#[command(slash_command, prefix_command, aliases("tp"))]
+#[lumi::command(slash_command, prefix_command, aliases("tp"))]
 pub async fn track_plays(ctx: Context<'_>) -> Result<(), Error> {
     let _ = ctx.defer_or_broadcast().await;
 
@@ -62,7 +61,7 @@ pub async fn track_plays(ctx: Context<'_>) -> Result<(), Error> {
                             image_color[2],
                         ));
 
-                    ctx.send(poise::CreateReply::default().embed(embed)).await?;
+                    ctx.send(lumi::CreateReply::default().embed(embed)).await?;
                 }
                 Err(err) => {
                     ctx.say(format!("Error fetching track info: {}", err))

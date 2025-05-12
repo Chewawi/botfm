@@ -1,6 +1,6 @@
-use crate::{Context, Error};
+use crate::core::structs::{Context, Error};
 
-#[poise::command(
+#[lumi::command(
     slash_command,
     prefix_command,
     description_localized("en-US", "Initiate Last.fm web authentication login.")

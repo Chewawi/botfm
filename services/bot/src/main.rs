@@ -1,68 +1,46 @@
+use std::str::FromStr;
 use common::config::CONFIG;
 use common::utils::tracing_init;
-use database::DatabaseHandler;
-use lastfm::LastFmClient;
 
-use poise::{serenity_prelude as serenity, PrefixFrameworkOptions};
+use lumi::{serenity_prelude as serenity, PrefixFrameworkOptions};
 use std::sync::Arc;
+use std::time::Duration;
 
 mod commands;
-
-#[derive(Clone)]
-struct Data {
-    http_client: reqwest::Client,
-    db: Arc<DatabaseHandler>,
-    lastfm: Arc<LastFmClient>,
-}
-
-type Error = Box<dyn std::error::Error + Send + Sync>;
-type Context<'a> = poise::Context<'a, Data, Error>;
+mod core;
 
 #[tokio::main]
-async fn main() -> Result<(), Error> {
+async fn main() {
     tracing_init();
+    
+    let data = core::data::setup().await;
+
+    let framework = lumi::Framework::new(lumi::FrameworkOptions {
+        prefix_options: PrefixFrameworkOptions {
+            prefix: Some(CONFIG.prefix.get().into()),
+            mention_as_prefix: true,
+            case_insensitive_commands: true,
+            edit_tracker: Some(Arc::new(lumi::EditTracker::for_timespan(
+                Duration::from_secs(600),
+            ))),
+            ..Default::default()
+        },
+        commands: commands::register_all_commands(),
+        ..Default::default()
+    });
+    
+    let mut settings = serenity::Settings::default();
+    settings.max_messages = 1000;
 
     let intents = serenity::GatewayIntents::all();
-
-    let http_client = reqwest::Client::new();
-    let db = Arc::new(
-        DatabaseHandler::new(CONFIG.database.to_url(), CONFIG.database.to_url_safe()).await?,
-    );
-    let lastfm = Arc::new(LastFmClient::new(http_client.clone(), db.clone()).await?);
-
-    let data = Arc::new(Data {
-        http_client,
-        db,
-        lastfm,
-    });
-
-    let framework = poise::Framework::builder()
-        .options(poise::FrameworkOptions {
-            prefix_options: PrefixFrameworkOptions {
-                prefix: Some("!".to_string()),
-                mention_as_prefix: true,
-                case_insensitive_commands: true,
-                ..Default::default()
-            },
-            commands: commands::register_all_commands(),
-            ..Default::default()
-        })
-        .setup(move |ctx, ready, framework| {
-            let data_clone = data.clone();
-            Box::pin(async move {
-                println!("Registering commands...");
-                poise::builtins::register_globally(ctx, &framework.options().commands).await?;
-                println!("Ready as {}!", ready.user.name);
-                Ok((*data_clone).clone())
-            })
-        })
-        .build();
-
-    let mut client = serenity::ClientBuilder::new(&CONFIG.authentication.discord_token, intents)
+    let token = serenity::Token::from_str(&CONFIG.authentication.discord_token)
+        .expect("Missing TOKEN in config.toml");
+    let mut client = serenity::Client::builder(token, intents)
         .framework(framework)
-        .await?;
-
-    client.start().await?;
-
-    Ok(())
+        .data(data)
+        .cache_settings(settings)
+        .await
+        .unwrap();
+    
+    client.start().await.unwrap();
 }

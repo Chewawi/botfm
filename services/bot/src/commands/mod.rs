@@ -1,4 +1,4 @@
-use crate::Data;
+use crate::core::structs::Data;
 
 pub mod lastfm;
 pub mod system;
@@ -15,7 +15,7 @@ macro_rules! register_commands {
     };
 }
 
-pub fn register_all_commands() -> Vec<poise::Command<Data, Box<dyn std::error::Error + Send + Sync>>>
+pub fn register_all_commands() -> Vec<lumi::Command<Data, Box<dyn std::error::Error + Send + Sync>>>
 {
     register_commands!(lastfm, system)
 }

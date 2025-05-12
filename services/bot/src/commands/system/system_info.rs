@@ -1,12 +1,11 @@
-use crate::{Context, Error};
+use crate::core::structs::{Context, Error};
 use humanize_bytes::humanize_bytes_decimal as humanize;
-use poise::command;
-use poise::serenity_prelude as serenity;
+use lumi::serenity_prelude as serenity;
 use sysinfo::Disks;
 use sysinfo::Pid;
 use sysinfo::System;
 
-#[command(slash_command, prefix_command)]
+#[lumi::command(slash_command, prefix_command)]
 pub async fn system_info(ctx: Context<'_>) -> Result<(), Error> {
     let mut sys = System::new_all();
     sys.refresh_all();
@@ -73,7 +72,7 @@ pub async fn system_info(ctx: Context<'_>) -> Result<(), Error> {
         .author(serenity::CreateEmbedAuthor::new(format!("@{}", u.name.as_str())).icon_url(&avatar))
         .color(serenity::Color::new(0x1D1D1D));
 
-    ctx.send(poise::CreateReply::default().embed(embed)).await?;
+    ctx.send(lumi::CreateReply::default().embed(embed)).await?;
 
     Ok(())
 }
