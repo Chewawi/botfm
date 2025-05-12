@@ -24,6 +24,9 @@ port = 0
 [prefix]
 # When the bot joins a new guild, this will be the default prefix.
 default = "."
+# When working with a dev instance, set this to the prefix "override" value for that instance
+# to prevent triggering the production instance and the development instance at the same time.
+development = "~"
 
 [logging_webhooks]
 panic = { token = "", id = 0 }
@@ -33,7 +36,3 @@ enable_webhooks = true
 [dev]
 # These Discord user IDs have full control of the bot, including developer-only commands.
 developers = []
-
-# When working with a dev instance, set this to the prefix "override" value for that instance
-# to prevent triggering the production instance and the development instance at the same time.
-prefix_override = "~"

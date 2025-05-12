@@ -83,10 +83,10 @@ impl Prefixes {
     pub fn get(&self) -> String {
         match std::env::var("RUST_ENV") {
             Ok(env) => match env.as_str() {
-                "development" => self.development.clone(),
-                _ => self.default.clone(),
+                "production" => self.default.clone(),
+                _ => self.development.clone(),
             },
-            Err(_) => self.default.clone(),
+            Err(_) => self.development.clone(),
         }
     }
 }
