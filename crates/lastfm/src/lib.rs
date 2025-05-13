@@ -193,18 +193,23 @@ impl LastFmClient {
     /// Get the small and large image URLs from Lastfm.
     pub fn get_image_urls<'a>(
         &self,
-        images: &'a [lastfm::Image],
-    ) -> Result<(&'a str, &'a str), Error> {
+        images: &'a [Image],
+    ) -> Result<(&'a str, &'a str, &'a str), Error> {
         let small = images
             .iter()
-            .find(|i| i.size == "small")
+            .find(|i| i.size == ImageSizes::Small)
             .ok_or_else(|| anyhow::anyhow!("Small URL not found"))?;
 
         let large = images
             .iter()
-            .find(|i| i.size == "large")
+            .find(|i| i.size == ImageSizes::Large)
             .ok_or_else(|| anyhow::anyhow!("Large URL not found"))?;
 
-        Ok((&small.text, &large.text))
+        let extra_large = images
+            .iter()
+            .find(|i| i.size == ImageSizes::ExtraLarge)
+            .ok_or_else(|| anyhow::anyhow!("Large URL not found"))?;
+
+        Ok((&small.text, &large.text, &extra_large.text))
     }
 }

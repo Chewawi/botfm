@@ -39,12 +39,7 @@ pub async fn track_plays(ctx: Context<'_>) -> Result<(), Error> {
                 Ok(track_info) => {
                     let playcount = track_info.playcount;
 
-                    let small_url = track
-                        .image
-                        .iter()
-                        .find(|img| img.size == "small")
-                        .map(|img| &img.text)
-                        .ok_or_else(|| Error::from("Missing small image URL"))?;
+                    let (small_url, _, _) = data.lastfm.get_image_urls(&track.image)?;
 
                     let image_color = Colors::get(&data.db.cache, data.http_client.clone(), small_url)
                         .await?

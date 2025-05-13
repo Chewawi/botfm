@@ -84,9 +84,18 @@ pub struct Album {
     pub text: String,
 }
 
+#[derive(Clone, Deserialize, Debug, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum ImageSizes {
+    Small,
+    Medium,
+    Large,
+    ExtraLarge,
+}
+
 #[derive(Debug, Deserialize, Clone)]
 pub struct Image {
-    pub size: String,
+    pub size: ImageSizes,
     #[serde(rename = "#text")]
     pub text: String,
 }
