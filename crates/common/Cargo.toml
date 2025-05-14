@@ -15,6 +15,7 @@ toml = "0.8.8"
 lazy_static = "1.4.0"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter", "local-time"] }
 time = "0.3.37"
+ab_glyph = "0.2.29"
 
 [lints]
 workspace = true

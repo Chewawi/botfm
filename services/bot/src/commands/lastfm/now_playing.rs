@@ -1,35 +1,13 @@
-use database::model::{colors::Colors, lastfm::Lastfm};
-use poise::serenity_prelude as serenity;
-use ::serenity::builder::{
-    CreateContainer, CreateMediaGallery, CreateMediaGalleryItem, CreateComponent,
-    CreateTextDisplay, CreateAttachment, CreateSeparator, Spacing,
-    CreateUnfurledMediaItem
-};
-use lumi::{CreateReply};
-use image::{RgbaImage, imageops, ImageFormat};
-use imageproc::{drawing::{draw_filled_rect_mut, draw_text_mut}, rect::Rect};
-use ab_glyph::{FontArc, PxScale};
-use lazy_static::lazy_static;
-use reqwest;
-use std::io::Cursor;
-use common::utils::truncate_text;
 use crate::core::structs::{Context, Error};
-
-// Design constants
-const CANVAS_SIZE: (u32, u32) = (800, 400);
-const COVER_SIZE: u32 = 300;
-const COVER_POSITION: (i64, i64) = (40, 40);
-const TEXT_AREA: (i32, i32) = (370, 80);
-const TEXT_COLOR: image::Rgba<u8> = image::Rgba([255, 255, 255, 255]);
-const BACKGROUND_COLOR: image::Rgba<u8> = image::Rgba([30, 30, 30, 255]);
-const TEXT_BG_COLOR: image::Rgba<u8> = image::Rgba([0, 0, 0, 180]);
-
-lazy_static! {
-    static ref FONT: FontArc = {
-        let font_data = include_bytes!("../../../../../assets/fonts/Arial.ttf");
-        FontArc::try_from_slice(font_data).expect("Error loading font")
-    };
-}
+use crate::images::lastfm::now_playing_card::now_playing_card;
+use common::utils::truncate_text;
+use database::model::{colors::Colors, lastfm::Lastfm};
+use lumi::serenity_prelude as serenity;
+use lumi::CreateReply;
+use ::serenity::builder::{
+    CreateAttachment, CreateComponent, CreateContainer, CreateMediaGallery, CreateMediaGalleryItem,
+    CreateSeparator, CreateTextDisplay, CreateUnfurledMediaItem, Spacing,
+};
 
 #[lumi::command(
     slash_command,
@@ -41,131 +19,87 @@ pub async fn now_playing(ctx: Context<'_>) -> Result<(), Error> {
     let data = ctx.data();
     let user_id = ctx.author().id.get();
 
-    // Get Last.fm data
     let session = Lastfm::get(&data.db, user_id)
         .await?
         .ok_or("Link your account with /login")?;
 
-    let (track_opt, _user) = tokio::try_join!(
+    let (track_opt, user) = tokio::try_join!(
         data.lastfm.get_current_track(session),
         data.lastfm.get_user_info(user_id)
     )?;
 
     let track = track_opt.ok_or("No music currently playing")?;
+    let (small_url, _, extra_url) = data.lastfm.get_image_urls(&track.image)?;
 
-    // Get image URLs
-    let (small_url, large_url) = data.lastfm.get_image_urls(&track.image)?;
+    let track_info = data
+        .lastfm
+        .get_track_info(user_id, &track.artist.text, &track.name)
+        .await?;
 
-    let image_bytes = generate_image(
+    let card_bytes = now_playing_card(
         &track.name,
         &track.artist.text,
-        track.album.as_ref().map(|a| a.text.as_str()).unwrap_or("Unknown"),
-        large_url
-    ).await?;
+        track
+            .album
+            .as_ref()
+            .map(|a| a.text.as_str())
+            .unwrap_or("Unknown Album"),
+        extra_url,
+    )
+    .await?;
 
-    // Create embed
-    let container = create_container(ctx, &track, small_url).await?;
+    let container = create_container(ctx, &track, &track_info, &user, small_url).await?;
 
     ctx.send(
         CreateReply::default()
+            .flags(serenity::MessageFlags::IS_COMPONENTS_V2)
             .components(&[CreateComponent::Container(container)])
-            //.embed(embed)
-            .attachment(CreateAttachment::bytes(image_bytes, "now_playing.png"))
-    ).await?;
+            .attachment(CreateAttachment::bytes(card_bytes, "now_playing.png"))
+            .reply(true),
+    )
+    .await?;
 
     Ok(())
 }
 
-async fn generate_image(
-    track_name: &str,
-    artist_name: &str,
-    album_name: &str,
-    cover_url: &str
-) -> Result<Vec<u8>, Error> {
-    // Clone the strings to avoid lifetime issues
-    let track_name = track_name.to_string();
-    let artist_name = artist_name.to_string();
-    let album_name = album_name.to_string();
-    let cover_url = cover_url.to_string();
+async fn create_container<'a>(
+    ctx: Context<'_>,
+    track: &'a lastfm::Track,
+    track_info: &'a lastfm::TrackInfo,
+    user: &'a lastfm::UserInfo,
+    image_url: &str,
+) -> Result<CreateContainer<'a>, Error> {
+    let color = Colors::get(
+        &ctx.data().db.cache,
+        ctx.data().http_client.clone(),
+        image_url,
+    )
+    .await?
+    .map(|c| serenity::Colour::from_rgb(c[0], c[1], c[2]))
+    .unwrap_or(serenity::Colour::DARK_GREY);
 
-    // Fetch image data
-    let bytes = reqwest::get(&cover_url).await?.bytes().await?;
-
-    let result = tokio::task::spawn_blocking(move || {
-        let cover = image::load_from_memory(&bytes)?
-            .resize_exact(COVER_SIZE, COVER_SIZE, imageops::FilterType::CatmullRom);
-
-        let mut canvas = RgbaImage::from_pixel(CANVAS_SIZE.0, CANVAS_SIZE.1, BACKGROUND_COLOR);
-
-        imageops::overlay(&mut canvas, &cover, COVER_POSITION.0, COVER_POSITION.1);
-
-        // Draw text background
-        draw_filled_rect_mut(
-            &mut canvas,
-            Rect::at(TEXT_AREA.0 - 20, TEXT_AREA.1 - 20).of_size(400, 240),
-            TEXT_BG_COLOR
-        );
-
-        // Draw track information
-        draw_text_mut(
-            &mut canvas,
-            TEXT_COLOR,
-            TEXT_AREA.0,
-            100,
-            PxScale::from(36.0),
-            &*FONT,
-            &truncate_text(&track_name, 30)
-        );
-
-        draw_text_mut(
-            &mut canvas,
-            TEXT_COLOR,
-            TEXT_AREA.0,
-            160,
-            PxScale::from(24.0),
-            &*FONT,
-            &format!("Artist: {}", artist_name)
-        );
-
-        draw_text_mut(
-            &mut canvas,
-            TEXT_COLOR,
-            TEXT_AREA.0,
-            200,
-            PxScale::from(24.0),
-            &*FONT,
-            &format!("Album: {}", album_name)
-        );
-
-        let mut buffer = Cursor::new(Vec::new());
-        canvas.write_to(&mut buffer, ImageFormat::Png)?;
-        Ok::<_, Error>(buffer.into_inner())
-    }).await??;
-
-    Ok(result)
-}
-
-async fn create_container<'a>(ctx: Context<'_>, track: &'a lastfm::Track, image_url: &str) -> Result<CreateContainer<'a>, Error> {
-    let color = Colors::get(&ctx.data().db.cache, ctx.data().http_client.clone(), image_url)
-        .await?
-        .map(|c| serenity::Colour::from_rgb(c[0], c[1], c[2]))
-        .unwrap_or(serenity::Colour::DARK_GREY); 
+    let text_display_content = format!(
+        "**[{}]({})**\n-# {} - {}",
+        truncate_text(&track.name, 40),
+        track.url,
+        truncate_text(&track.artist.text, 30),
+        track
+            .album
+            .as_ref()
+            .map(|a| truncate_text(&a.text, 50))
+            .unwrap_or_else(|| "Unknown Album".to_string()),
+    );
 
     Ok(CreateContainer::new(vec![
-            CreateComponent::TextDisplay(
-                CreateTextDisplay::new(
-                    format!("# [{}]({})", truncate_text(&track.name, 256), track.url)
-                ),
-            ),
-            CreateComponent::Separator(
-                CreateSeparator::new(true).spacing(Spacing::Small)
-            ),
-            CreateComponent::MediaGallery(
-                CreateMediaGallery::new(vec![
-                    CreateMediaGalleryItem::new(
-                        CreateUnfurledMediaItem::new("attachment://now_playing.png")
-                    )
-                ])
-            )
-    ]).accent_color(color.0))
+        CreateComponent::TextDisplay(CreateTextDisplay::new(text_display_content)),
+        CreateComponent::MediaGallery(CreateMediaGallery::new(vec![CreateMediaGalleryItem::new(
+            CreateUnfurledMediaItem::new("attachment://now_playing.png"),
+        )])),
+        CreateComponent::Separator(CreateSeparator::new(true).spacing(Spacing::Small)),
+        CreateComponent::TextDisplay(CreateTextDisplay::new(format!(
+            "-# plays: `{}` | scrobbles: `{}`",
+            track_info.userplaycount, user.playcount
+        ))),
+    ])
+    .accent_color(color.0))
 }

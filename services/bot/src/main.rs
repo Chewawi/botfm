@@ -1,6 +1,6 @@
-use std::str::FromStr;
 use common::config::CONFIG;
 use common::utils::tracing_init;
+use std::str::FromStr;
 
 use lumi::{serenity_prelude as serenity, PrefixFrameworkOptions};
 use std::sync::Arc;
@@ -9,6 +9,7 @@ use std::time::Duration;
 mod commands;
 mod core;
 mod events;
+mod images;
 
 #[tokio::main]
 async fn main() {

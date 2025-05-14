@@ -1,4 +1,5 @@
 pub mod image;
+pub mod font;
 
 use tracing_subscriber::fmt::time::UtcTime;
 use tracing::info;
