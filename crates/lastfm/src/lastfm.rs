@@ -64,6 +64,12 @@ where
 }
 
 #[derive(Debug, Deserialize, Clone)]
+pub struct TrackArtist {
+    #[serde(rename = "#text")]
+    pub name: String,
+}
+
+#[derive(Debug, Deserialize, Clone)]
 pub struct Track {
     pub name: String,
     pub artist: Artist,
@@ -145,4 +151,41 @@ pub struct UserInfo {
 #[derive(Debug, Deserialize)]
 pub struct LastFmUserInfoResponse {
     pub user: UserInfo,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct WeeklyChartListResponse {
+    #[serde(rename = "weeklychartlist")]
+    pub weekly_chart_list: WeeklyChartList,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct WeeklyChartList {
+    #[serde(rename = "chart")]
+    pub charts: Vec<ChartRange>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ChartRange {
+    pub from: String,
+    pub to: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct WeeklyTrackChartResponse {
+    #[serde(rename = "weeklytrackchart")]
+    pub weekly_track_chart: WeeklyTrackChart,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct WeeklyTrackChart {
+    #[serde(default)]
+    pub track: Vec<WeeklyTrack>,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct WeeklyTrack {
+    pub name: String,
+    pub playcount: String,
+    pub artist: TrackArtist,
 }

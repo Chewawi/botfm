@@ -212,4 +212,83 @@ impl LastFmClient {
 
         Ok((&small.text, &large.text, &extra_large.text))
     }
+
+    pub async fn get_track_play_counts(
+        &self,
+        user_id: u64,
+        artist: &str,
+        track_name: &str,
+    ) -> Result<(usize, usize)> {
+        let session = self.get_user_session(user_id).await?;
+
+        let week_ago = (Utc::now() - chrono::Duration::days(7)).timestamp();
+        let month_ago = (Utc::now() - chrono::Duration::days(30)).timestamp();
+
+        let mut page = 1;
+        let mut weekly = 0;
+        let mut monthly = 0;
+
+        loop {
+            let params = [
+                ("method", "user.getRecentTracks"),
+                ("user", &session.lastfm_username),
+                ("api_key", &self.api_key),
+                ("format", "json"),
+                ("limit", "200"),
+                ("page", &page.to_string()),
+            ];
+
+            let response = self
+                .http_client
+                .get("https://ws.audioscrobbler.com/2.0/")
+                .query(&params)
+                .send()
+                .await?
+                .json::<LastFmRecentTracksResponse>()
+                .await?;
+
+            let tracks = response.recenttracks.track;
+
+            if tracks.is_empty() {
+                break;
+            }
+
+            for track in &tracks {
+                // Skip currently playing tracks (no date)
+                let date = match &track.date {
+                    Some(d) => d,
+                    None => continue,
+                };
+
+                let timestamp = match date.uts.parse::<i64>() {
+                    Ok(ts) => ts,
+                    Err(_) => continue,
+                };
+
+                if timestamp < month_ago {
+                    // Past 30-day window: stop parsing more
+                    break;
+                }
+
+                let artist_match = track.artist.text.eq_ignore_ascii_case(artist);
+                let title_match = track.name.eq_ignore_ascii_case(track_name);
+
+                if artist_match && title_match {
+                    if timestamp >= week_ago {
+                        weekly += 1;
+                    }
+                    monthly += 1;
+                }
+            }
+
+            // If we didn’t fill a full page, stop
+            if tracks.len() < 200 {
+                break;
+            }
+
+            page += 1;
+        }
+
+        Ok((weekly, monthly))
+    }
 }
