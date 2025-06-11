@@ -1,5 +1,6 @@
 use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
+use atomic_time::AtomicInstant;
 use database::DatabaseHandler;
 use lastfm::LastFmClient;
 
@@ -15,6 +16,8 @@ pub struct Data {
     pub has_started: AtomicBool,
     /// Time the bot started.
     pub time_started: std::time::Instant,
+    /// Time the command was started.
+    pub command_started: AtomicInstant,
     /// Http client.
     pub http_client: reqwest::Client,
     /// Wrapper for the bot database with helper functions.

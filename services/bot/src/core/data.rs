@@ -1,5 +1,7 @@
 use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
+use std::time::Instant;
+use atomic_time::AtomicInstant;
 use common::config::CONFIG;
 use database::DatabaseHandler;
 use lastfm::LastFmClient;
@@ -15,6 +17,7 @@ pub async fn setup() -> Arc<Data> {
     Arc::new(Data {
         has_started: AtomicBool::new(false),
         time_started: std::time::Instant::now(),
+        command_started: AtomicInstant::new(Instant::now()),
         http_client,
         db,
         lastfm,
