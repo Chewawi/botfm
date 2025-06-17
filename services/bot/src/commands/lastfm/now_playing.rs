@@ -4,7 +4,6 @@ use common::utils::truncate_text;
 use database::model::{colors::Colors, lastfm::Lastfm};
 use lumi::serenity_prelude as serenity;
 use lumi::CreateReply;
-use sqlx::types::chrono::Utc;
 
 #[lumi::command(
     slash_command,
@@ -25,31 +24,6 @@ pub async fn now_playing(ctx: Context<'_>) -> Result<(), Error> {
         Err(e) => return Err(Error::from(e)),
     };
 
-    // Get the user to check when they were last updated
-    let user = match data.db.get_user(user_id as i64).await {
-        Ok(user) => user,
-        Err(e) => return Err(Error::from(e)),
-    };
-
-    // Check if the user needs a quick update (more than 3 minutes since last update)
-    let needs_update = match user.last_updated {
-        Some(last_updated) => {
-            let now = Utc::now();
-            let minutes_since_update = (now - last_updated).num_minutes();
-            minutes_since_update >= 3
-        },
-        None => true, // No last_updated timestamp means we definitely need an update
-    };
-
-    // If the user needs an update, trigger a quick sync
-    if needs_update {
-        // Use force=false to let the sync_scrobbles method determine the update type
-        if let Err(e) = data.lastfm.sync_scrobbles(user_id, false).await {
-            // Log the error but continue with potentially stale data
-            println!("Warning: Failed to sync scrobbles: {}", e);
-        }
-    }
-
     let track_future = data.lastfm.get_current_track(session.clone());
     let user_future = data.lastfm.get_user_info(user_id);
 
@@ -57,16 +31,7 @@ pub async fn now_playing(ctx: Context<'_>) -> Result<(), Error> {
 
     let track = track_opt.ok_or("No music currently playing")?;
 
-    // Handle the case where no images are found
-    let default_image_url = "https://lastfm.freetls.fastly.net/i/u/64s/2a96cbd8b46e442fc41c2b86b821562f.png";
-    let (small_url, medium_url) = match data.lastfm.get_image_urls(&track.image) {
-        Ok((small, medium, _)) => (small, medium),
-        Err(err) => {
-            // Log the error but continue with default values
-            println!("Warning: Could not get image URLs: {}", err);
-            (default_image_url, default_image_url)
-        }
-    };
+    let (small_url, _, medium_url) = data.lastfm.get_image_urls(&track.image)?;
 
     let track_info_future = data.lastfm.get_track_info(
         user_id, 
@@ -81,20 +46,16 @@ pub async fn now_playing(ctx: Context<'_>) -> Result<(), Error> {
     );
 
     // Handle potential errors from the futures
-    let (track_info, color_result) = match tokio::try_join!(track_info_future, color_future) {
-        Ok(result) => result,
-        Err(err) => {
-            println!("Warning: Error getting track info or color: {}", err);
-            // Return default values
-            (
-                lastfm::TrackInfo { 
-                    playcount: "0".to_string(), 
-                    userplaycount: "0".to_string() 
-                },
-                None
-            )
-        }
-    };
+    let (track_info, color_result) = tokio::try_join!(track_info_future, color_future).unwrap_or_else(|err| {
+        // Return default values
+        (
+            lastfm::TrackInfo {
+                playcount: "0".to_string(),
+                userplaycount: "0".to_string()
+            },
+            None
+        )
+    });
 
     let container_future = async {
         let color = color_result
