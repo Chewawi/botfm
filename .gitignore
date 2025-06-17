@@ -5,3 +5,5 @@
 .moon/docker
 
 config.toml
+.sqlx
+.idea
