@@ -1,5 +1,5 @@
 use serde::de::{self, Deserializer, MapAccess, SeqAccess, Visitor};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::fmt;
 
 #[derive(Debug, Deserialize)]
@@ -25,7 +25,7 @@ pub struct LastFmRecentTracksResponse {
     pub recenttracks: RecentTracks,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct RecentTracks {
     #[serde(alias = "track", deserialize_with = "deserialize_track")]
     pub track: Vec<Track>,
@@ -69,12 +69,13 @@ pub struct TrackArtist {
     pub name: String,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Track {
     pub name: String,
     pub artist: Artist,
     #[serde(rename = "@attr")]
     pub attr: Option<TrackAttr>,
+    #[serde(default)]
     pub mbid: String,
     pub album: Option<Album>,
     pub image: Vec<Image>,
@@ -83,14 +84,19 @@ pub struct Track {
     pub date: Option<Date>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Album {
+    #[serde(default)]
     pub mbid: String,
-    #[serde(rename = "#text")]
+    #[serde(rename = "#text", default = "default_album_text")]
     pub text: String,
 }
 
-#[derive(Clone, Deserialize, Debug, PartialEq)]
+fn default_album_text() -> String {
+    "Unknown Album".to_string()
+}
+
+#[derive(Clone, Deserialize, Serialize, Debug, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum ImageSizes {
     Small,
@@ -99,44 +105,49 @@ pub enum ImageSizes {
     ExtraLarge,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Image {
     pub size: ImageSizes,
-    #[serde(rename = "#text")]
+    #[serde(rename = "#text", default = "default_image_url")]
     pub text: String,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+fn default_image_url() -> String {
+    "https://lastfm.freetls.fastly.net/i/u/64s/2a96cbd8b46e442fc41c2b86b821562f.png".to_string()
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Artist {
+    #[serde(default)]
     pub mbid: String,
     #[serde(rename = "#text")]
     pub text: String,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct TrackAttr {
     pub nowplaying: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Date {
     pub uts: String,
     #[serde(rename = "#text")]
     pub text: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct LastFmTrackInfoResponse {
     pub track: TrackInfo,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct TrackInfo {
     pub playcount: String,
     pub userplaycount: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct UserInfo {
     pub name: String,
     pub realname: String,
@@ -148,7 +159,7 @@ pub struct UserInfo {
     pub image: Vec<Image>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct LastFmUserInfoResponse {
     pub user: UserInfo,
 }

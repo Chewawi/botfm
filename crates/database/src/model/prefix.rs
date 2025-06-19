@@ -1,11 +1,12 @@
 use std::hash::Hash;
+use serde::{Serialize, Deserialize};
 
 use crate::DatabaseHandler;
 
 /// Represents a guild-specific command prefix.
 ///
 /// Each guild can have a unique prefix used to invoke bot commands.
-#[derive(Clone, Hash, PartialEq)]
+#[derive(Clone, Hash, PartialEq, Serialize, Deserialize)]
 pub struct Prefix {
     /// The prefix string itself.
     pub prefix: String,

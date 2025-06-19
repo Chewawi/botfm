@@ -1,9 +1,10 @@
+use serde::{Serialize, Deserialize};
 use crate::DatabaseHandler;
 
 /// Represents a Last.fm session for a user.
 ///
 /// Stores user ID, Last.fm username, session key, and token for API interactions.
-#[derive(sqlx::FromRow, Debug, Clone)]
+#[derive(sqlx::FromRow, Debug, Clone, Serialize, Deserialize)]
 pub struct Lastfm {
     /// Discord user ID associated with the Last.fm session.
     pub user_id: i64,
