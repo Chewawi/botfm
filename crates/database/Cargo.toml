@@ -16,6 +16,7 @@ common = { workspace = true }
 anyhow = { workspace = true }
 tracing = { workspace = true }
 reqwest = { workspace = true }
+serde = { workspace = true }
 
 [lints]
 workspace = true

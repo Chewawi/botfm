@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-serenity = { workspace = true, default-features = false, features = ["gateway", "model", "cache", "collector", "rustls_backend"] }
+# serenity = { workspace = true, default-features = false, features = ["gateway", "model", "cache", "collector", "rustls_backend"] }
 lumi = { workspace = true }
 
 lastfm = { workspace = true }
@@ -15,9 +15,6 @@ tokio = { workspace = true }
 reqwest = { workspace = true }
 
 atomic-time = "0.1.5"
-sysinfo = "0.35.0"
+sysinfo = "0.35.2"
 humanize-bytes = "1.0.6"
-image = { workspace = true }
-imageproc = "0.25.0"
-ab_glyph = "0.2.29"
 tracing = "0.1.41"
