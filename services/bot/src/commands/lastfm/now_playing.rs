@@ -24,15 +24,19 @@ pub async fn now_playing(ctx: Context<'_>) -> Result<(), Error> {
         Err(e) => return Err(Error::from(e)),
     };
 
+    // Start all async operations concurrently
     let track_future = data.lastfm.get_current_track(session.clone());
     let user_future = data.lastfm.get_user_info(user_id);
 
+    // Wait for both operations to complete
     let (track_opt, user) = tokio::try_join!(track_future, user_future)?;
 
     let track = track_opt.ok_or("No music currently playing")?;
 
+    // Get image URLs
     let (small_url, _, medium_url) = data.lastfm.get_image_urls(&track.image)?;
 
+    // Start track info and color fetching concurrently
     let track_info_future = data.lastfm.get_track_info(
         user_id, 
         &track.artist.text, 
@@ -46,7 +50,7 @@ pub async fn now_playing(ctx: Context<'_>) -> Result<(), Error> {
     );
 
     // Handle potential errors from the futures
-    let (track_info, color_result) = tokio::try_join!(track_info_future, color_future).unwrap_or_else(|err| {
+    let (track_info, color_result) = tokio::try_join!(track_info_future, color_future).unwrap_or_else(|_| {
         // Return default values
         (
             lastfm::TrackInfo {

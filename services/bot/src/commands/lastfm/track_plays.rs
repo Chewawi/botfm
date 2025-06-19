@@ -3,6 +3,7 @@ use database::model::colors::Colors;
 use database::model::lastfm::Lastfm;
 use lumi::serenity_prelude as serenity;
 use serenity::all::MessageFlags;
+use tokio::join;
 
 #[lumi::command(slash_command, prefix_command, aliases("tp"))]
 pub async fn track_plays(ctx: Context<'_>) -> Result<(), Error> {
@@ -38,12 +39,23 @@ pub async fn track_plays(ctx: Context<'_>) -> Result<(), Error> {
     let track_name = track.name.clone();
     let artist_name = track.artist.text.clone();
 
-    // Fetch detailed track info including the user's total play count
-    let track_info = match data
-        .lastfm
-        .get_track_info(user_id, &artist_name, &track_name)
-        .await
-    {
+    // Extract image URLs
+    let (small_url, large_url, _) = data.lastfm.get_image_urls(&track.image)?;
+
+    // Start all async operations concurrently
+    let track_info_future = data.lastfm.get_track_info(user_id, &artist_name, &track_name);
+    let play_counts_future = data.lastfm.get_track_play_counts(user_id, &artist_name, &track_name);
+    let image_color_future = Colors::get(&data.db.cache, data.http_client.clone(), small_url);
+
+    // Wait for all operations to complete
+    let (track_info_result, play_counts_result, image_color_result) = join!(
+        track_info_future,
+        play_counts_future,
+        image_color_future
+    );
+
+    // Handle track info result
+    let track_info = match track_info_result {
         Ok(info) => info,
         Err(err) => {
             ctx.say(format!("Error fetching track info: {}", err))
@@ -52,12 +64,8 @@ pub async fn track_plays(ctx: Context<'_>) -> Result<(), Error> {
         }
     };
 
-    // Fetch play counts in the last 7 and 30 days
-    let (weekly, monthly) = match data
-        .lastfm
-        .get_track_play_counts(user_id, &artist_name, &track_name)
-        .await
-    {
+    // Handle play counts result
+    let (weekly, monthly) = match play_counts_result {
         Ok(counts) => counts,
         Err(err) => {
             ctx.say(format!("Error fetching play stats: {}", err))
@@ -67,9 +75,8 @@ pub async fn track_plays(ctx: Context<'_>) -> Result<(), Error> {
     };
 
     // Extract image URLs and compute accent color
-    let (small_url, large_url, _) = data.lastfm.get_image_urls(&track.image)?;
-    let image_color = Colors::get(&data.db.cache, data.http_client.clone(), small_url)
-        .await?
+    let image_color = image_color_result
+        .unwrap_or(None)
         .map(|c| serenity::Colour::from_rgb(c[0], c[1], c[2]))
         .unwrap_or(serenity::Colour::DARK_GREY);
 
