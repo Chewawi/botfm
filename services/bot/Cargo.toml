@@ -13,8 +13,8 @@ database = { workspace = true }
 
 tokio = { workspace = true }
 reqwest = { workspace = true }
+tracing = { workspace = true }
 
 atomic-time = "0.1.5"
 sysinfo = "0.35.2"
 humanize-bytes = "1.0.6"
-tracing = "0.1.41"
