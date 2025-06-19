@@ -1,8 +1,10 @@
+#![allow(dead_code)]
+
+use mini_moka::sync::Cache;
 use std::hash::Hash;
 use std::mem::size_of;
 use std::time::Duration;
 use std::u64;
-use mini_moka::sync::Cache;
 
 use crate::model::lastfm::Lastfm;
 use crate::model::prefix::Prefix;

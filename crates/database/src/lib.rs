@@ -2,11 +2,13 @@
 
 use std::borrow::Cow;
 
-use cache::DatabaseCache;
+use reqwest::Client;
+use server_cache::ServerCache;
 use sqlx::postgres::{PgPool, PgPoolOptions};
 use tracing::info;
 
 mod cache;
+mod server_cache;
 pub mod model;
 
 // Define the maximum number of database connections
@@ -31,8 +33,8 @@ pub struct DatabaseSize {
 pub struct DatabaseHandler {
     /// Connection pool for PostgreSQL database.
     pool: PgPool,
-    /// In-memory cache for database data.
-    pub cache: DatabaseCache,
+    /// Server-based cache for database data.
+    pub cache: ServerCache,
 }
 
 impl DatabaseHandler {
@@ -59,8 +61,8 @@ impl DatabaseHandler {
             .await?;
 
         info!("Connected to database on {}", safe_url);
-        // Initialize the database cache
-        let cache = DatabaseCache::new();
+        // Initialize the server cache
+        let cache = ServerCache::new(Client::new());
         Ok(Self { pool, cache })
     }
 

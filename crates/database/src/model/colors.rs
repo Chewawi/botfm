@@ -1,4 +1,4 @@
-use crate::cache::DatabaseCache;
+use crate::server_cache::ServerCache;
 
 #[derive(sqlx::FromRow, Debug, Clone)]
 pub struct Colors {
@@ -8,29 +8,29 @@ pub struct Colors {
 
 impl Colors {
     pub async fn get(
-        cache: &DatabaseCache,
+        cache: &ServerCache,
         http: reqwest::Client,
         image_url: &str,
     ) -> anyhow::Result<Option<Vec<u8>>> {
-        if let Some(rgba) = cache.get_image_color(image_url) {
+        if let Some(rgba) = cache.get_image_color(image_url).await? {
             return Ok(Some(rgba));
         }
 
         match common::utils::image::get_image_color(http, image_url).await {
             Ok(image_color) => {
-                cache.set_image_color(image_url, image_color.clone());
+                cache.set_image_color(image_url, &image_color).await?;
                 Ok(Some(image_color))
-            },
+            }
             Err(err) => Err(err.into()),
         }
     }
 
     pub async fn set(
         &self,
-        cache: &DatabaseCache,
+        cache: &ServerCache,
         colors: Vec<u8>,
     ) -> anyhow::Result<Option<Self>> {
-        cache.set_image_color(&self.image_url, colors);
+        cache.set_image_color(&self.image_url, &colors).await?;
         Ok(Some(self.clone()))
     }
 }

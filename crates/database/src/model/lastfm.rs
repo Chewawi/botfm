@@ -55,7 +55,7 @@ impl Lastfm {
             .await?;
 
         // Update the cache with the new session data
-        handler.cache.set_session(user_id, self.clone());
+        handler.cache.set_session(user_id, self).await?;
 
         Ok(())
     }
@@ -74,7 +74,7 @@ impl Lastfm {
     /// A `Result` containing an `Option<Lastfm>`. `Some(Lastfm)` if found, `None` if not found, or an error.
     pub async fn get(handler: &DatabaseHandler, user_id: u64) -> anyhow::Result<Option<Self>> {
         // Check if the session is already in the cache
-        if let Some(session) = handler.cache.get_session(user_id) {
+        if let Some(session) = handler.cache.get_session(user_id).await? {
             return Ok(Some(session));
         }
 
@@ -88,7 +88,7 @@ impl Lastfm {
         {
             Ok(session) => {
                 // Update the cache with the fetched session data
-                handler.cache.set_session(user_id, session.clone());
+                handler.cache.set_session(user_id, &session).await?;
                 Ok(Some(session))
             }
             Err(sqlx::Error::RowNotFound) => Ok(None), // Return None if no session found in the database

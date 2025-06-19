@@ -184,10 +184,10 @@ impl LastFmClient {
     }
 
     pub async fn get_user_session(&self, user_id: u64) -> Result<Lastfm> {
-        self.db
-            .cache
-            .get_session(user_id)
-            .ok_or_else(|| anyhow::anyhow!("No session found"))
+        match self.db.cache.get_session(user_id).await? {
+            Some(session) => Ok(session),
+            None => Err(anyhow::anyhow!("No session found")),
+        }
     }
 
     /// Get the small and large image URLs from Lastfm.

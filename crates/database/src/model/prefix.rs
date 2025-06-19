@@ -36,7 +36,7 @@ impl Prefix {
             .await?;
 
         // Update the cache with the new prefix
-        handler.cache.set_prefix(guild_id, self.clone());
+        handler.cache.set_prefix(guild_id, self).await?;
 
         Ok(())
     }
@@ -55,7 +55,7 @@ impl Prefix {
     /// A `Result` containing an `Option<Prefix>`. `Some(Prefix)` if found, `None` if not found, or an error.
     pub async fn get(handler: &DatabaseHandler, guild_id: u64) -> anyhow::Result<Option<Self>> {
         // Check if the prefix is already in the cache
-        if let Some(prefix) = handler.cache.get_prefix(guild_id) {
+        if let Some(prefix) = handler.cache.get_prefix(guild_id).await? {
             return Ok(Some(prefix));
         }
 
@@ -71,7 +71,7 @@ impl Prefix {
                 // Create a Prefix struct from the database result
                 let prefix = Prefix { prefix: res.0 };
                 // Update the cache with the fetched prefix
-                handler.cache.set_prefix(guild_id, prefix.clone());
+                handler.cache.set_prefix(guild_id, &prefix).await?;
                 Ok(Some(prefix))
             },
             Err(sqlx::Error::RowNotFound) => Ok(None), // Return None if no prefix found in the database

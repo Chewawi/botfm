@@ -9,6 +9,7 @@ pub struct Config {
     pub api: API,
     pub authentication: Authentication,
     pub database: Database,
+    pub cache: Cache,
     pub prefix: Prefixes,
     pub logging_webhooks: LoggingWebhooks,
 }
@@ -25,6 +26,12 @@ pub struct Authentication {
 pub struct API {
     pub port: u16,
     pub host: String,
+}
+
+#[derive(Deserialize)]
+pub struct Cache {
+    pub host: String,
+    pub token: String,
 }
 
 #[derive(Deserialize)]
