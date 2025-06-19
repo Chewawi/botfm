@@ -2,7 +2,6 @@ use crate::core::structs::Command;
 
 pub mod lastfm;
 pub mod system;
-mod register;
 
 macro_rules! register_commands {
     ($($module:ident),*) => {{

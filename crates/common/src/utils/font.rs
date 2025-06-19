@@ -1,7 +1,7 @@
 use ab_glyph::FontArc;
 use lazy_static::lazy_static;
 
-const FONTS_DIR: &str = "../../../../assets/fonts";
+// const FONTS_DIR: &str = "../../../../assets/fonts";
 
 lazy_static! {
     //pub static ref ARIAL: FontArc = {
