@@ -1,14 +1,14 @@
-use std::vec;
 use crate::core::structs::{Context, Error};
 use common::utils::truncate_text;
 use database::model::{colors::Colors, lastfm::Lastfm};
 use lumi::serenity_prelude as serenity;
 use lumi::CreateReply;
+use std::vec;
 
 #[lumi::command(
     slash_command,
     prefix_command,
-    aliases("np", "now"),
+    aliases("np", "fm", "now"),
     description_localized("en-US", "Display your current song from Last.fm")
 )]
 pub async fn now_playing(ctx: Context<'_>) -> Result<(), Error> {
@@ -36,67 +36,74 @@ pub async fn now_playing(ctx: Context<'_>) -> Result<(), Error> {
     // Get image URLs
     let (small_url, _, medium_url) = data.lastfm.get_image_urls(&track.image)?;
 
-    // Start track info and color fetching concurrently
-    let track_info_future = data.lastfm.get_track_info(
-        user_id, 
-        &track.artist.text, 
-        &track.name
-    );
+    // Check if the image is the default one
+    let is_default_image = small_url == lastfm::DEFAULT_IMAGE_URL;
 
-    let color_future = Colors::get(
-        &data.db.cache,
-        data.http_client.clone(),
-        small_url
-    );
-
-    // Handle potential errors from the futures
-    let (track_info, color_result) = tokio::try_join!(track_info_future, color_future).unwrap_or_else(|_| {
-        // Return default values
-        (
-            lastfm::TrackInfo {
-                playcount: "0".to_string(),
-                userplaycount: "0".to_string()
-            },
-            None
-        )
+    // Get track info
+    let track_info = data.lastfm.get_track_info(user_id, &track.artist.text, &track.name).await.unwrap_or_else(|_| lastfm::TrackInfo {
+        playcount: "0".to_string(),
+        userplaycount: "0".to_string(),
     });
 
-    let container_future = async {
-        let color = color_result
-            .map(|c| serenity::Colour::from_rgb(c[0], c[1], c[2]))
-            .unwrap_or(serenity::Colour::DARK_GREY);
-
-        let text_display_content = format!(
-            "**[{}]({})**\n-# {} - {}",
-            truncate_text(&track.name, 40),
-            track.url,
-            truncate_text(&track.artist.text, 30),
-            track
-                .album
-                .as_ref()
-                .map(|a| truncate_text(&a.text, 50))
-                .unwrap_or_else(|| "Unknown Album".to_string()),
-        );
-
-        serenity::CreateContainer::new(vec![
-            serenity::CreateComponent::Section(
-                serenity::CreateSection::new(
-                    vec![serenity::CreateSectionComponent::TextDisplay(serenity::CreateTextDisplay::new(text_display_content))],
-                    serenity::CreateSectionAccessory::Thumbnail(
-                        serenity::CreateThumbnail::new(serenity::CreateUnfurledMediaItem::new(medium_url))
-                    ),
-                )
-            ),
-            serenity::CreateComponent::Separator(serenity::CreateSeparator::new(true).spacing(serenity::Spacing::Small)),
-            serenity::CreateComponent::TextDisplay(serenity::CreateTextDisplay::new(format!(
-                "-# plays: `{}` | scrobbles: `{}`",
-                track_info.userplaycount, user.playcount
-            ))),
-        ])
-        .accent_color(color.0)
+    // Only get image color if not the default image
+    let color_result = if !is_default_image {
+        Colors::get(&data.db.cache, data.http_client.clone(), small_url).await.ok().flatten()
+    } else {
+        None
     };
 
-    let container = container_future.await;
+    // Map color result to serenity color
+    let image_color_opt = color_result.map(|c| serenity::Colour::from_rgb(c[0], c[1], c[2]));
+
+    let text_display_content = format!(
+        "**[{}]({})**\n-# {} - {}",
+        truncate_text(&track.name, 40),
+        track.url,
+        truncate_text(&track.artist.text, 30),
+        track
+            .album
+            .as_ref()
+            .map(|a| truncate_text(&a.text, 50))
+            .unwrap_or_else(|| "Unknown Album".to_string()),
+    );
+
+    // Build components
+    let mut components = vec![
+        serenity::CreateComponent::Section(
+            serenity::CreateSection::new(
+                vec![serenity::CreateSectionComponent::TextDisplay(serenity::CreateTextDisplay::new(text_display_content))],
+                serenity::CreateSectionAccessory::Thumbnail(
+                    serenity::CreateThumbnail::new(serenity::CreateUnfurledMediaItem::new(medium_url))
+                ),
+            )
+        ),
+        serenity::CreateComponent::Separator(
+            serenity::CreateSeparator::new(true).spacing(serenity::Spacing::Small)
+        ),
+        serenity::CreateComponent::TextDisplay(serenity::CreateTextDisplay::new(format!(
+            "-# plays: `{}` | scrobbles: `{}`",
+            track_info.userplaycount, user.playcount
+        ))),
+    ];
+
+    // Add "Now Playing" text if track is currently playing
+    if let Some(attr) = &track.attr {
+        if let Some(nowplaying) = &attr.nowplaying {
+            if nowplaying == "true" {
+                components.insert(0, serenity::CreateComponent::TextDisplay(
+                    serenity::CreateTextDisplay::new("## Now Playing")
+                ));
+            }
+        }
+    }
+
+    // Create container
+    let mut container = serenity::CreateContainer::new(components);
+
+    // Only set accent color if we have a color
+    if let Some(color) = image_color_opt {
+        container = container.accent_color(color.0);
+    }
 
     ctx.send(
         CreateReply::default()
@@ -104,7 +111,7 @@ pub async fn now_playing(ctx: Context<'_>) -> Result<(), Error> {
             .components(&[serenity::CreateComponent::Container(container)])
             .reply(true),
     )
-    .await?;
+        .await?;
 
     Ok(())
 }

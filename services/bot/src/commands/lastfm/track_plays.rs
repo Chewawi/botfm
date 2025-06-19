@@ -3,7 +3,6 @@ use database::model::colors::Colors;
 use database::model::lastfm::Lastfm;
 use lumi::serenity_prelude as serenity;
 use serenity::all::MessageFlags;
-use tokio::join;
 
 #[lumi::command(slash_command, prefix_command, aliases("tp"))]
 pub async fn track_plays(ctx: Context<'_>) -> Result<(), Error> {
@@ -41,21 +40,13 @@ pub async fn track_plays(ctx: Context<'_>) -> Result<(), Error> {
 
     // Extract image URLs
     let (small_url, large_url, _) = data.lastfm.get_image_urls(&track.image)?;
+    tracing::info!("{} {}", small_url, lastfm::DEFAULT_IMAGE_URL);
 
-    // Start all async operations concurrently
-    let track_info_future = data.lastfm.get_track_info(user_id, &artist_name, &track_name);
-    let play_counts_future = data.lastfm.get_track_play_counts(user_id, &artist_name, &track_name);
-    let image_color_future = Colors::get(&data.db.cache, data.http_client.clone(), small_url);
+    // Check if the image is the default one
+    let is_default_image = small_url == lastfm::DEFAULT_IMAGE_URL;
 
-    // Wait for all operations to complete
-    let (track_info_result, play_counts_result, image_color_result) = join!(
-        track_info_future,
-        play_counts_future,
-        image_color_future
-    );
-
-    // Handle track info result
-    let track_info = match track_info_result {
+    // Get track info first
+    let track_info = match data.lastfm.get_track_info(user_id, &artist_name, &track_name).await {
         Ok(info) => info,
         Err(err) => {
             ctx.say(format!("Error fetching track info: {}", err))
@@ -64,29 +55,39 @@ pub async fn track_plays(ctx: Context<'_>) -> Result<(), Error> {
         }
     };
 
-    // Handle play counts result
-    let (weekly, monthly) = match play_counts_result {
-        Ok(counts) => counts,
-        Err(err) => {
-            ctx.say(format!("Error fetching play stats: {}", err))
-                .await?;
-            return Ok(());
+    let playcount = track_info.userplaycount.parse::<usize>().unwrap_or(0);
+
+    // Only get play counts if playcount > 0
+    let (weekly, monthly) = if playcount > 0 {
+        match data.lastfm.get_track_play_counts(user_id, &artist_name, &track_name).await {
+            Ok(counts) => counts,
+            Err(err) => {
+                ctx.say(format!("Error fetching play stats: {}", err))
+                    .await?;
+                return Ok(());
+            }
         }
+    } else {
+        (0, 0)
     };
 
-    // Extract image URLs and compute accent color
-    let image_color = image_color_result
-        .unwrap_or(None)
-        .map(|c| serenity::Colour::from_rgb(c[0], c[1], c[2]))
-        .unwrap_or(serenity::Colour::DARK_GREY);
+    // Only get image color if not the default image
+    let image_color_result = if !is_default_image {
+        Colors::get(&data.db.cache, data.http_client.clone(), small_url).await.ok().flatten()
+    } else {
+        None
+    };
 
-    // Build Discord container
-    let container = serenity::CreateContainer::new(vec![
+    // Only map to color if we got a result
+    let image_color_opt = image_color_result.map(|c| serenity::Colour::from_rgb(c[0], c[1], c[2]));
+
+    // Build Discord container components
+    let mut components = vec![
         serenity::CreateComponent::Section(serenity::CreateSection::new(
             vec![serenity::CreateSectionComponent::TextDisplay(
                 serenity::CreateTextDisplay::new(format!(
-                    "**{}** total plays for **{}** by **{}**",
-                    track_info.userplaycount, track.name, track.artist.text
+                    "**{}** total plays for **[{}]({})** by **[{}](https://www.last.fm/music/{})**",
+                    playcount, track.name, track.url, track.artist.text, track.artist.text
                 )),
             )],
             serenity::CreateSectionAccessory::Thumbnail(serenity::CreateThumbnail::new(
@@ -96,12 +97,23 @@ pub async fn track_plays(ctx: Context<'_>) -> Result<(), Error> {
         serenity::CreateComponent::Separator(
             serenity::CreateSeparator::new(true).spacing(serenity::Spacing::Small),
         ),
-        serenity::CreateComponent::TextDisplay(serenity::CreateTextDisplay::new(format!(
+    ];
+
+    // Only add weekly/monthly plays if they're not both 0
+    if weekly > 0 || monthly > 0 {
+        components.push(serenity::CreateComponent::TextDisplay(serenity::CreateTextDisplay::new(format!(
             "-# `{}` plays last week — `{}` plays last month",
             weekly, monthly
-        ))),
-    ])
-    .accent_color(image_color.0);
+        ))));
+    }
+
+    // Create container
+    let mut container = serenity::CreateContainer::new(components);
+
+    // Only set an accent color if we have a color
+    if let Some(color) = image_color_opt {
+        container = container.accent_color(color.0);
+    }
 
     // Send the message
     ctx.send(
@@ -110,7 +122,7 @@ pub async fn track_plays(ctx: Context<'_>) -> Result<(), Error> {
             .components(&[serenity::CreateComponent::Container(container)])
             .reply(true),
     )
-    .await?;
+        .await?;
 
     Ok(())
 }

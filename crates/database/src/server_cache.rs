@@ -154,7 +154,7 @@ impl ServerCache {
         }
 
         // If not in memory, try to get from the server cache
-        match self.get::<Prefix>(&format!("prefix/{}", guild_id)).await {
+        match self.get::<Prefix>(&format!("prefix/{guild_id}")).await {
             Ok(Some(prefix)) => {
                 // Store in memory for future requests
                 self.prefixes_cache.insert(guild_id, prefix.clone());
@@ -170,7 +170,7 @@ impl ServerCache {
         self.prefixes_cache.insert(guild_id, prefix.clone());
 
         // Update server cache
-        self.set(&format!("prefix/{}", guild_id), prefix, true).await
+        self.set(&format!("prefix/{guild_id}"), prefix, true).await
     }
 
     /// Retrieves a lastfm session from the cache by user ID.
@@ -181,7 +181,7 @@ impl ServerCache {
         }
 
         // If not in memory, try to get from the server cache
-        match self.get::<Lastfm>(&format!("session/{}", user_id)).await {
+        match self.get::<Lastfm>(&format!("session/{user_id}")).await {
             Ok(Some(session)) => {
                 // Store in memory for future requests
                 self.sessions_cache.insert(user_id, session.clone());
@@ -197,7 +197,7 @@ impl ServerCache {
         self.sessions_cache.insert(user_id, session.clone());
 
         // Update server cache
-        self.set(&format!("session/{}", user_id), session, true).await
+        self.set(&format!("session/{user_id}"), session, true).await
     }
 
     /// Retrieves an image color from the cache by image URL.
@@ -210,7 +210,7 @@ impl ServerCache {
 
         // If not in memory, try to get from the server cache
         let hash = format!("{:x}", md5::compute(image_url));
-        match self.get::<Vec<u8>>(&format!("color/{}", hash)).await {
+        match self.get::<Vec<u8>>(&format!("color/{hash}")).await {
             Ok(Some(color)) => {
                 // Store in memory for future requests
                 self.colors_cache.insert(url_string, color.clone());
@@ -227,6 +227,6 @@ impl ServerCache {
 
         // Update server cache
         let hash = format!("{:x}", md5::compute(image_url));
-        self.set(&format!("color/{}", hash), colors, true).await
+        self.set(&format!("color/{hash}"), colors, true).await
     }
 }
