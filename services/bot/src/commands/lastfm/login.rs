@@ -1,5 +1,5 @@
 use crate::core::structs::{Context, Error};
-use serenity::all as serenity;
+use lumi::serenity_prelude as serenity;
 
 #[lumi::command(
     slash_command,
