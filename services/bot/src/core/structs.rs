@@ -1,8 +1,8 @@
-use std::sync::Arc;
-use std::sync::atomic::AtomicBool;
 use atomic_time::AtomicInstant;
 use database::DatabaseHandler;
 use lastfm::LastFmClient;
+use std::sync::atomic::AtomicBool;
+use std::sync::Arc;
 
 // not used yet
 // pub type PrefixContext<'a> = lumi::PrefixContext<'a, Data, Error>;

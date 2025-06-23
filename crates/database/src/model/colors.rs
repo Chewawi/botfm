@@ -21,15 +21,11 @@ impl Colors {
                 cache.set_image_color(image_url, &image_color).await?;
                 Ok(Some(image_color))
             }
-            Err(err) => Err(err.into()),
+            Err(err) => Err(err),
         }
     }
 
-    pub async fn set(
-        &self,
-        cache: &ServerCache,
-        colors: Vec<u8>,
-    ) -> anyhow::Result<Option<Self>> {
+    pub async fn set(&self, cache: &ServerCache, colors: Vec<u8>) -> anyhow::Result<Option<Self>> {
         cache.set_image_color(&self.image_url, &colors).await?;
         Ok(Some(self.clone()))
     }

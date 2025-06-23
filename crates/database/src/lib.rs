@@ -8,8 +8,8 @@ use sqlx::postgres::{PgPool, PgPoolOptions};
 use tracing::info;
 
 mod cache;
-mod server_cache;
 pub mod model;
+mod server_cache;
 
 // Define the maximum number of database connections
 static MAX_CONNECTIONS: u32 = 1;

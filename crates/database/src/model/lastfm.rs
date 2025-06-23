@@ -1,5 +1,5 @@
-use serde::{Serialize, Deserialize};
 use crate::DatabaseHandler;
+use serde::{Deserialize, Serialize};
 
 /// Represents a Last.fm session for a user.
 ///
@@ -92,8 +92,7 @@ impl Lastfm {
                 Ok(Some(session))
             }
             Err(sqlx::Error::RowNotFound) => Ok(None), // Return None if no session found in the database
-            Err(err) => Err(err.into()), // Propagate other errors
+            Err(err) => Err(err.into()),               // Propagate other errors
         }
     }
-
 }

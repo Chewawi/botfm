@@ -1,7 +1,7 @@
 mod handlers;
 
-use lumi::serenity_prelude::{self as serenity, FullEvent};
 use crate::core::structs::{Data, Error};
+use lumi::serenity_prelude::{self as serenity, FullEvent};
 
 use handlers::*;
 

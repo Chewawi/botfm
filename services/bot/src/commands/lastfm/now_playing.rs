@@ -20,7 +20,7 @@ pub async fn now_playing(ctx: Context<'_>) -> Result<(), Error> {
 
     let session = match session_result {
         Ok(Some(session)) => session,
-        Ok(None) => return Err("Link your account with /login".into()),
+        Ok(_) => return Err("Link your account with /login".into()),
         Err(e) => return Err(Error::from(e)),
     };
 
@@ -40,14 +40,21 @@ pub async fn now_playing(ctx: Context<'_>) -> Result<(), Error> {
     let is_default_image = small_url == lastfm::DEFAULT_IMAGE_URL;
 
     // Get track info
-    let track_info = data.lastfm.get_track_info(user_id, &track.artist.text, &track.name).await.unwrap_or_else(|_| lastfm::TrackInfo {
-        playcount: "0".to_string(),
-        userplaycount: "0".to_string(),
-    });
+    let track_info = data
+        .lastfm
+        .get_track_info(user_id, &track.artist.text, &track.name)
+        .await
+        .unwrap_or_else(|_| lastfm::TrackInfo {
+            playcount: "0".to_string(),
+            userplaycount: "0".to_string(),
+        });
 
     // Only get image color if not the default image
     let color_result = if !is_default_image {
-        Colors::get(&data.db.cache, data.http_client.clone(), small_url).await.ok().flatten()
+        Colors::get(&data.db.cache, data.http_client.clone(), small_url)
+            .await
+            .ok()
+            .flatten()
     } else {
         None
     };
@@ -69,16 +76,16 @@ pub async fn now_playing(ctx: Context<'_>) -> Result<(), Error> {
 
     // Build components
     let mut components = vec![
-        serenity::CreateComponent::Section(
-            serenity::CreateSection::new(
-                vec![serenity::CreateSectionComponent::TextDisplay(serenity::CreateTextDisplay::new(text_display_content))],
-                serenity::CreateSectionAccessory::Thumbnail(
-                    serenity::CreateThumbnail::new(serenity::CreateUnfurledMediaItem::new(medium_url))
-                ),
-            )
-        ),
+        serenity::CreateComponent::Section(serenity::CreateSection::new(
+            vec![serenity::CreateSectionComponent::TextDisplay(
+                serenity::CreateTextDisplay::new(text_display_content),
+            )],
+            serenity::CreateSectionAccessory::Thumbnail(serenity::CreateThumbnail::new(
+                serenity::CreateUnfurledMediaItem::new(medium_url),
+            )),
+        )),
         serenity::CreateComponent::Separator(
-            serenity::CreateSeparator::new(true).spacing(serenity::Spacing::Small)
+            serenity::CreateSeparator::new(true).spacing(serenity::Spacing::Small),
         ),
         serenity::CreateComponent::TextDisplay(serenity::CreateTextDisplay::new(format!(
             "-# plays: `{}` | scrobbles: `{}`",
@@ -90,9 +97,12 @@ pub async fn now_playing(ctx: Context<'_>) -> Result<(), Error> {
     if let Some(attr) = &track.attr {
         if let Some(nowplaying) = &attr.nowplaying {
             if nowplaying == "true" {
-                components.insert(0, serenity::CreateComponent::TextDisplay(
-                    serenity::CreateTextDisplay::new("## Now Playing")
-                ));
+                components.insert(
+                    0,
+                    serenity::CreateComponent::TextDisplay(serenity::CreateTextDisplay::new(
+                        "## Now Playing",
+                    )),
+                );
             }
         }
     }
@@ -111,7 +121,7 @@ pub async fn now_playing(ctx: Context<'_>) -> Result<(), Error> {
             .components(&[serenity::CreateComponent::Container(container)])
             .reply(true),
     )
-        .await?;
+    .await?;
 
     Ok(())
 }

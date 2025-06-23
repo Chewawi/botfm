@@ -1,8 +1,8 @@
+use crate::core::structs::{Data, Error};
+use lumi::BoxFuture;
 use std::sync::atomic::Ordering::SeqCst;
 use std::time::Instant;
-use lumi::BoxFuture;
 use tracing::{info, instrument};
-use crate::core::structs::{Data, Error};
 
 /// Pre-command hook that records the start time of a command execution
 /// and stores it in the context for later use.
@@ -24,7 +24,7 @@ pub fn post_command(ctx: lumi::Context<'_, Data, Error>) -> BoxFuture<'_, ()> {
         let start_time = ctx.data().command_started.load(SeqCst);
         // Calculate the execution time
         let execution_time = start_time.elapsed();
-        
+
         // Log the execution time and other metrics
         info!(
             "Command '{}' completed in {:.2?}",

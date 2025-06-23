@@ -1,5 +1,5 @@
+use serde::{Deserialize, Serialize};
 use std::hash::Hash;
-use serde::{Serialize, Deserialize};
 
 use crate::DatabaseHandler;
 
@@ -73,9 +73,9 @@ impl Prefix {
                 // Update the cache with the fetched prefix
                 handler.cache.set_prefix(guild_id, &prefix).await?;
                 Ok(Some(prefix))
-            },
+            }
             Err(sqlx::Error::RowNotFound) => Ok(None), // Return None if no prefix found in the database
-            Err(err) => Err(err.into()), // Propagate other errors
+            Err(err) => Err(err.into()),               // Propagate other errors
         }
     }
 
@@ -84,7 +84,8 @@ impl Prefix {
     /// # Returns
     ///
     /// The size of the prefix string in bytes as a `u64`.
-    #[must_use] pub fn size_of(&self) -> u64 {
-        self.prefix.as_bytes().len() as u64
+    #[must_use]
+    pub fn size_of(&self) -> u64 {
+        self.prefix.len() as u64
     }
 }

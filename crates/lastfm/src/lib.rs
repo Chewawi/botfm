@@ -242,12 +242,16 @@ impl LastFmClient {
         let session = self.get_user_session(user_id).await?;
 
         // Get weekly track chart
-        let weekly_chart = self.get_weekly_track_chart(&session.lastfm_username).await?;
+        let weekly_chart = self
+            .get_weekly_track_chart(&session.lastfm_username)
+            .await?;
 
         // Find the track in the weekly chart
         let mut weekly = 0;
         for track in &weekly_chart.track {
-            if track.artist.name.eq_ignore_ascii_case(artist) && track.name.eq_ignore_ascii_case(track_name) {
+            if track.artist.name.eq_ignore_ascii_case(artist)
+                && track.name.eq_ignore_ascii_case(track_name)
+            {
                 weekly = track.playcount.parse::<usize>().unwrap_or(0);
                 break;
             }

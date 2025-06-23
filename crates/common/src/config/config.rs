@@ -58,23 +58,18 @@ impl Database {
         let masked_host = match labels.len() {
             n if n > 2 => {
                 let mut masked = vec!["***"; n - 2];
-                masked.extend_from_slice(&labels[n-2..]);
+                masked.extend_from_slice(&labels[n - 2..]);
                 masked.join(".")
             }
             2 => {
                 format!("***.{}", labels[1])
             }
-            _ => {
-                "***".to_string()
-            }
+            _ => "***".to_string(),
         };
 
         format!(
             "postgres://{}@{}:{}/{}",
-            self.username,
-            masked_host,
-            self.port,
-            self.database
+            self.username, masked_host, self.port, self.database
         )
     }
 }

@@ -2,7 +2,6 @@ use crate::model::lastfm::Lastfm;
 use crate::model::prefix::Prefix;
 use anyhow::Result;
 use common::config::CONFIG;
-use md5;
 use mini_moka::sync::Cache;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -70,7 +69,8 @@ impl ServerCache {
         let sanitized_key = Self::sanitize_key(key);
         let url = format!("{}/{}", self.base_url, sanitized_key);
 
-        let response = self.client
+        let response = self
+            .client
             .get(&url)
             .header("Authorization", &self.token)
             .send()
@@ -82,7 +82,10 @@ impl ServerCache {
         } else if response.status().as_u16() == 404 {
             Ok(None)
         } else {
-            Err(anyhow::anyhow!("Failed to get value from cache: {}", response.status()))
+            Err(anyhow::anyhow!(
+                "Failed to get value from cache: {}",
+                response.status()
+            ))
         }
     }
 
@@ -105,7 +108,8 @@ impl ServerCache {
             format!("{}/{}", self.base_url, sanitized_key)
         };
 
-        let response = self.client
+        let response = self
+            .client
             .put(&url)
             .header("Authorization", &self.token)
             .header("Content-Type", "application/json")
@@ -116,7 +120,10 @@ impl ServerCache {
         if response.status().is_success() {
             Ok(())
         } else {
-            Err(anyhow::anyhow!("Failed to set value in cache: {}", response.status()))
+            Err(anyhow::anyhow!(
+                "Failed to set value in cache: {}",
+                response.status()
+            ))
         }
     }
 
@@ -133,7 +140,8 @@ impl ServerCache {
         let sanitized_key = Self::sanitize_key(key);
         let url = format!("{}/{}", self.base_url, sanitized_key);
 
-        let response = self.client
+        let response = self
+            .client
             .delete(&url)
             .header("Authorization", &self.token)
             .send()
@@ -142,7 +150,10 @@ impl ServerCache {
         if response.status().is_success() {
             Ok(())
         } else {
-            Err(anyhow::anyhow!("Failed to delete value from cache: {}", response.status()))
+            Err(anyhow::anyhow!(
+                "Failed to delete value from cache: {}",
+                response.status()
+            ))
         }
     }
 
@@ -223,7 +234,8 @@ impl ServerCache {
     /// Sets an image color in the cache for a given image URL.
     pub async fn set_image_color(&self, image_url: &str, colors: &Vec<u8>) -> Result<()> {
         // Update in-memory cache
-        self.colors_cache.insert(image_url.to_string(), colors.clone());
+        self.colors_cache
+            .insert(image_url.to_string(), colors.clone());
 
         // Update server cache
         let hash = format!("{:x}", md5::compute(image_url));

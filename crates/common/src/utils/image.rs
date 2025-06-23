@@ -42,7 +42,7 @@ pub async fn get_image_color(http_client: Client, image_url: impl Into<String>) 
                     Ok(vec![128, 128, 128]) // Default gray color
                 }
             }
-        },
+        }
         Err(e) => {
             tracing::warn!("Failed to load image: {}", e);
             Ok(vec![128, 128, 128]) // Default gray color
@@ -62,7 +62,7 @@ pub fn get_dominant_color(img: &DynamicImage) -> Result<Vec<u8>> {
 
     let rgba = img.to_rgba8();
     let pixels = rgba.as_raw();
-    let total_pixels = (rgba.width() * rgba.height()) as u32;
+    let total_pixels = rgba.width() * rgba.height();
 
     // Skip processing if there are no pixels
     if total_pixels == 0 {

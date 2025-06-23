@@ -2,7 +2,8 @@ use serde::de::{self, Deserializer, MapAccess, SeqAccess, Visitor};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
-pub const DEFAULT_IMAGE_URL: &str = "https://lastfm.freetls.fastly.net/i/u/34s/2a96cbd8b46e442fc41c2b86b821562f.png";
+pub const DEFAULT_IMAGE_URL: &str =
+    "https://lastfm.freetls.fastly.net/i/u/34s/2a96cbd8b46e442fc41c2b86b821562f.png";
 
 #[derive(Debug, Deserialize)]
 pub struct LastFmSessionResponse {

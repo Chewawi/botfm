@@ -16,10 +16,10 @@ pub async fn ready(ctx: &serenity::Context, ready: &Ready, data: Arc<Data>) -> R
     };
     ctx.set_activity(Some(activity_data));
 
-    let commands = create_application_commands(&*register_all_commands());
+    let commands = create_application_commands(&register_all_commands());
 
     if !data.has_started.swap(true, Ordering::SeqCst) {
-        RawCommand::set_global_commands(&ctx.http, &*commands).await?;
+        RawCommand::set_global_commands(&ctx.http, &commands).await?;
         info!("Global commands set!");
 
         info!(

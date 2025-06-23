@@ -46,7 +46,11 @@ pub async fn track_plays(ctx: Context<'_>) -> Result<(), Error> {
     let is_default_image = small_url == lastfm::DEFAULT_IMAGE_URL;
 
     // Get track info first
-    let track_info = match data.lastfm.get_track_info(user_id, &artist_name, &track_name).await {
+    let track_info = match data
+        .lastfm
+        .get_track_info(user_id, &artist_name, &track_name)
+        .await
+    {
         Ok(info) => info,
         Err(err) => {
             ctx.say(format!("Error fetching track info: {}", err))
@@ -59,7 +63,11 @@ pub async fn track_plays(ctx: Context<'_>) -> Result<(), Error> {
 
     // Only get play counts if playcount > 0
     let (weekly, monthly) = if playcount > 0 {
-        match data.lastfm.get_track_play_counts(user_id, &artist_name, &track_name).await {
+        match data
+            .lastfm
+            .get_track_play_counts(user_id, &artist_name, &track_name)
+            .await
+        {
             Ok(counts) => counts,
             Err(err) => {
                 ctx.say(format!("Error fetching play stats: {}", err))
@@ -73,7 +81,10 @@ pub async fn track_plays(ctx: Context<'_>) -> Result<(), Error> {
 
     // Only get image color if not the default image
     let image_color_result = if !is_default_image {
-        Colors::get(&data.db.cache, data.http_client.clone(), small_url).await.ok().flatten()
+        Colors::get(&data.db.cache, data.http_client.clone(), small_url)
+            .await
+            .ok()
+            .flatten()
     } else {
         None
     };
@@ -101,10 +112,12 @@ pub async fn track_plays(ctx: Context<'_>) -> Result<(), Error> {
 
     // Only add weekly/monthly plays if they're not both 0
     if weekly > 0 || monthly > 0 {
-        components.push(serenity::CreateComponent::TextDisplay(serenity::CreateTextDisplay::new(format!(
-            "-# `{}` plays last week — `{}` plays last month",
-            weekly, monthly
-        ))));
+        components.push(serenity::CreateComponent::TextDisplay(
+            serenity::CreateTextDisplay::new(format!(
+                "-# `{}` plays last week — `{}` plays last month",
+                weekly, monthly
+            )),
+        ));
     }
 
     // Create container
@@ -122,7 +135,7 @@ pub async fn track_plays(ctx: Context<'_>) -> Result<(), Error> {
             .components(&[serenity::CreateComponent::Container(container)])
             .reply(true),
     )
-        .await?;
+    .await?;
 
     Ok(())
 }
