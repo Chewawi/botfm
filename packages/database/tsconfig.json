@@ -1,0 +1,7 @@
+{
+    "extends": "@repo/common/tsconfig",
+    "compilerOptions": {
+        "module": "ESNext",
+        "moduleResolution": "bundler"
+    }
+}

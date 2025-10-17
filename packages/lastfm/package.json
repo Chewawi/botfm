@@ -1,0 +1,14 @@
+{
+    "name": "@repo/lastfm",
+    "type": "module",
+    "main": "src/index.ts",
+    "scripts": {
+        "lint": "bun x @biomejs/biome check src",
+        "lint:fix": "bun lint --write"
+    },
+    "dependencies": {
+        "@repo/common": "workspace:*",
+        "@repo/database": "workspace:*",
+        "@types/bun": "latest"
+    }
+}

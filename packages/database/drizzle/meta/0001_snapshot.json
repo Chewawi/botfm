@@ -1,0 +1,56 @@
+{
+  "id": "d5b63c54-bdbe-4ea0-b3e3-1cdbaf04383b",
+  "prevId": "ba5167f1-f2e5-44a9-a545-e400e5c2d426",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.lastfm_sessions": {
+      "name": "lastfm_sessions",
+      "schema": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "varchar(18)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "lastfm_username": {
+          "name": "lastfm_username",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "session_key": {
+          "name": "session_key",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token": {
+          "name": "token",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

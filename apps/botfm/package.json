@@ -1,0 +1,15 @@
+{
+    "name": "botfm",
+    "scripts": {
+        "dev": "bun --watch src/index.ts",
+        "start": "NODE_ENV=production bun run ./src/index.ts",
+        "lint": "bun x @biomejs/biome check src",
+        "lint:fix": "bun lint --write"
+    },
+    "dependencies": {
+        "@repo/common": "workspace:*",
+        "@repo/database": "workspace:*",
+        "@repo/lastfm": "workspace:*",
+        "seyfert": "^3.2.7-dev-18247187138.0"
+    }
+}

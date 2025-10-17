@@ -1,0 +1,28 @@
+{
+    "name": "@repo/database",
+    "type": "module",
+    "main": "src/db.ts",
+    "exports": {
+        ".": "./src/db.ts",
+        "./schema": "./src/schema/index.ts",
+        "./models": "./src/models/index.ts",
+        "./cache": "./src/cache/index.ts"
+    },
+    "scripts": {
+        "lint": "bun x @biomejs/biome check src",
+        "lint:fix": "bun lint --write",
+        "generate": "bunx --bun drizzle-kit generate",
+        "push": "bunx --bun drizzle-kit push",
+        "migrate": "bunx --bun drizzle-kit migrate",
+        "studio": "bunx --bun drizzle-kit studio"
+    },
+    "dependencies": {
+        "@electric-sql/pglite": "^0.3.7",
+        "drizzle-orm": "^0.44.5",
+        "postgres": "^3.4.7"
+    },
+    "devDependencies": {
+        "@repo/common": "workspace:*",
+        "drizzle-kit": "^0.31.4"
+    }
+}

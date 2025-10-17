@@ -1,0 +1,15 @@
+{
+	"extends": "@repo/common/tsconfig",
+	"compilerOptions": {
+		"emitDecoratorMetadata": true,
+		"experimentalDecorators": true,
+		"outDir": "./dist",
+		"rootDir": "./src",
+		"types": ["@types/bun", "@types/node", "./src/index.d.ts"],
+		"paths": {
+			"~/*": ["./src/*"]
+		}
+	},
+	"include": ["src/**/*", "src/index.d.ts"],
+	"exclude": ["node_modules"]
+}

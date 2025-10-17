@@ -1,0 +1,13 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.2.5/schema.json",
+	"extends": [
+		"@repo/common/biome"
+	],
+	"linter": {
+		"rules": {
+			"complexity": {
+				"noStaticOnlyClass": "off"
+			}
+		}
+	}
+}

@@ -1,0 +1,17 @@
+{
+    "name": "@repo/common",
+    "version": "0.0.0",
+    "type": "module",
+    "exports": {
+        "./config": "./src/config/index.ts",
+        "./utils": "./src/utils/index.ts",
+        "./biome": "./src/base/base_biome.jsonc",
+        "./tsconfig": "./src/base/base_tsconfig.json"
+    },
+    "dependencies": {
+        "@t3-oss/env-core": "^0.13.8",
+        "env-var": "^7.5.0",
+        "sharp": "^0.34.4",
+        "zod": "^4.1.11"
+    }
+}

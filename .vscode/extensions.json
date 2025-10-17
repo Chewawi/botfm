@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "usernamehw.errorlens",
+    "YoavBls.pretty-ts-errors",
+    "meganrogge.template-string-converter",
+    "oven.bun-vscode",
+    "biomejs.biome",
+    "rphlmr.vscode-drizzle-orm"
+  ]
+}

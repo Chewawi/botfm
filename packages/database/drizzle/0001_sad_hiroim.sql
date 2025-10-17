@@ -1,0 +1,1 @@
+ALTER TABLE "lastfm_sessions" ALTER COLUMN "user_id" SET DATA TYPE varchar(18);

@@ -1,0 +1,93 @@
+{
+  "id": "a7311499-77b4-4277-b3af-52e632ef09e7",
+  "prevId": "d5b63c54-bdbe-4ea0-b3e3-1cdbaf04383b",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.lastfm_sessions": {
+      "name": "lastfm_sessions",
+      "schema": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "varchar(18)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "lastfm_username": {
+          "name": "lastfm_username",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "session_key": {
+          "name": "session_key",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token": {
+          "name": "token",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.user_preferences": {
+      "name": "user_preferences",
+      "schema": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "varchar(18)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "style": {
+          "name": "style",
+          "type": "output_style",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'Compact'"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.output_style": {
+      "name": "output_style",
+      "schema": "public",
+      "values": [
+        "Compact",
+        "Detailed",
+        "Minimal"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

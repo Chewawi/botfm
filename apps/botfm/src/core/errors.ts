@@ -1,0 +1,119 @@
+/**
+ * Error thrown when an invalid environment value is provided.
+ * @class InvalidEnvValue
+ * @extends {Error}
+ */
+export class InvalidEnvValue extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "BotFm [InvalidEnvValue]";
+  }
+}
+
+/**
+ * Error thrown when an invalid component run is provided.
+ * @class InvalidComponentRun
+ * @extends {Error}
+ */
+export class InvalidComponentRun extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "BotFm [InvalidComponentRun]";
+  }
+}
+
+/**
+ * Error thrown when an invalid component type is provided.
+ * @class InvalidComponentType
+ * @extends {Error}
+ */
+export class InvalidEmbedsLength extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "BotFm [InvalidEmbedsLength]";
+  }
+}
+
+/**
+ * Error thrown when an invalid component type is provided.
+ * @class InvalidComponentType
+ * @extends {Error}
+ */
+export class InvalidMessage extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "BotFm [InvalidMessage]";
+  }
+}
+
+/**
+ * Error thrown when an invalid component type is provided.
+ * @class InvalidComponentType
+ * @extends {Error}
+ */
+export class InvalidPageNumber extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "BotFm [InvalidPageNumber]";
+  }
+}
+
+/**
+ * Error thrown when the nodes has a session id, but the session id is resolved.
+ * @class InvalidNodeSession
+ * @extends {Error}
+ */
+export class InvalidNodeSession extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "BotFm [InvalidSession]";
+  }
+}
+
+/**
+ * Error thrown when an invalid component is provided.
+ * @class InvalidRow
+ * @extends {Error}
+ */
+export class InvalidRow extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "BotFm [InvalidRow]";
+  }
+}
+
+/**
+ * Error thrown when an invalid component type is provided.
+ * @class InvalidComponentType
+ * @extends {Error}
+ */
+export class InvalidComponentType extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "BotFm [InvalidComponentType]";
+  }
+}
+
+/**
+ * Error thrown when an invalid queue store is provided.
+ * @class InvalidQueue
+ * @extends {Error}
+ */
+export class InvalidQueue extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "BotFm [InvalidQueue]";
+  }
+}
+
+/**
+ * Error thrown when an invalid configuration is provided.
+ * @class InvalidConfiguration
+ * @extends {Error}
+ */
+export class InvalidConfiguration extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "BotFm [InvalidConfiguration]";
+  }
+}
